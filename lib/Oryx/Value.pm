@@ -51,3 +51,22 @@ sub _carp {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::Value - abstract base class for Oryx value types
+
+=head1 SYNOPSIS
+
+ see Oryx documentation for supported value types and what they do
+
+=head1 AUTHOR
+
+Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
+
+=head1 LICENCE
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

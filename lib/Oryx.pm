@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -465,7 +465,7 @@ exactly what happens under the hood, but Oryx makes it transparent for
 you using Perl's I<tie> mechanism while managing the link table
 automagically.
 
-Furthermore one can also have to-many ordered (Array) or one-to-many
+Furthermore one can also have to-many ordered (Array) or to-many
 keyed (Hash) associations which are mixed - in other words one class
 can have an ARRAY (or HASH) reference which can contain instances of
 different classes (see ABSTRACT CLASSES below).
@@ -473,17 +473,21 @@ different classes (see ABSTRACT CLASSES below).
 =head2 Reference
 
 getting :
+
  my $a_template = $page->template;
 
 setting :
+
  $page->template($another_template);
 
 =head2 Array
 
 getting :
+
  my $para42 = $page->paragraphs->[42];
 
 setting :
+
  $page->paragraph->[0] = $intro_para;
 
 as well as all the usual I<push>, I<pop>, I<shift>, I<unshift> and I<splice>.
@@ -491,17 +495,21 @@ as well as all the usual I<push>, I<pop>, I<shift>, I<unshift> and I<splice>.
 =head2 Hash
 
 getting :
+
  my $image_obj = $page->images->{logo};
 
 setting :
+
  $page->images->{mug_shot} = $my_ugly_mug;
 
 =head1 RETRIEVING AND SEARCHING FOR OBJECTS
 
 Retrieval is simple, just pass in the id (primary key) :
+
  my $page = CMS::Page->retrieve($page_id);
 
 Searching uses 'LIKE' (assuming an RDBMS storage) :
+ 
  my @pages = CMS::Page->search({ author => '%Hundt%'});
 
 B<NOTE> : Searches don't search through superclass fields yet...
@@ -668,6 +676,11 @@ fairly trivial to add support for the other RDBMS' - MySQL doesn't
 have sequences so we'll probably have to create an additional table to
 manage sequences, c'est la vie.
 
+=item B<More documentation>
+
+References are made to seeing also Oryx::Class and Oryx::Value in this
+document, but they don't have any pod yet
+
 =back
 
 =head1 BUGS
@@ -684,7 +697,7 @@ Sam Vilain; Aaron Trevena
 
 Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
 
-=head1 LICENCE
+=head1 LICENSE
 
 Oryx may be used under the same terms as Perl itself.
 

@@ -119,23 +119,7 @@ __END__
 
 =head1 NAME
 
-Association - 
-
-=head1 SYNOPSIS
-
- <Schema name="CMS">
-   <Class name="Page">
-     <Attribute name="title" type="String" size="255" />
-     <Association name="template" target="Template" type="Reference" />
-     <Association target="Template" constraint="Inheritance" />
-   </Class>
-   <Class name="Template">
-     <Association target="Section" type="Array" constraint="Composition" />
-   </Class>
-   <Class name="Section">
-     <Association target="Template" type="Reference" />
-   </Class>
- </Schema>
+Association - abstract base class for Association types
 
 =head1 DESCRIPTION
 
@@ -145,15 +129,14 @@ have a single reference, otherwise you get an Array of Reference types
 or a Hash of Reference types depending on the schema
 definition. Reference types are distinguished by the fact that they
 always point to instances of the same (target) class. The constraint
-MetaAttribute (Aggregate, Composition or Inheritance) determines
+MetaAttribute (Aggregate or Composition) determines
 whether updates and deletes cascade or not.
 
-The 'name' meta-attribute is optional for Associations in general and
-meaningless for Associations with Inheritance constraints. If not
+The 'role' meta-attribute is optional for Associations. If not
 present, an accessor is created with the name set to that of the
 target Class' table name (which is a simple automatic pluralisation of
 the Class' name by the 'table' accessor in the target Class). If the
-Association is a 'Reference' type and the 'name' meta-attribute is not
+Association is a 'Reference' type and the 'role' meta-attribute is not
 present, then an accessor is created for the Association by
 sigularising (stripping a trailing 's' off) the target Class's table
 name.

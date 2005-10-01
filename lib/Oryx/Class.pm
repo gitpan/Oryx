@@ -303,3 +303,40 @@ sub _croak {
 sub DESTROY { $_[0]->remove_from_cache }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::Class - abstract base class for Oryx classes
+
+=head1 SYNOPSIS
+ 
+ see Oryx for details on creating classes and defining meta data
+ 
+=head1 METHODS
+
+=over
+
+=item B<create>
+
+=item B<retrieve>
+
+=item B<update>
+
+=item B<delete>
+
+=item B<search>
+
+=item B<commit>
+
+=back
+
+=head1 AUTHOR
+
+Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
+
+=head1 LICENCE
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

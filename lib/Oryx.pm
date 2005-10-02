@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -189,7 +189,7 @@ used for L<DBM::Deep> based storage instead of tables (see
 L<Oryx::DBM> for details).
 
 This is still a very early release and only supports L<DBM::Deep>, MySQL
-and Postgre back-ends at the moment. Having said this, however, Oryx is
+and Postgres back-ends at the moment. Having said this, however, Oryx is
 already quite usable. It needs to be thrashed a lot more and support
 for the rest of the popular RDBMS needs to be added. Things will
 change (for the better, one hopes); if you're interested in helping to

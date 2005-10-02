@@ -22,6 +22,8 @@ sub new {
     return $self;
 }
 
+sub dbh { $_[0]->{class}->dbh }
+
 sub class { $_[0]->{class} }
 
 sub child { $_[0]->{child} }

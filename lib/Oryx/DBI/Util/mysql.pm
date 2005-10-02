@@ -56,9 +56,7 @@ sub columnDrop {
 
 sub tableExists {
     my ($self, $dbh, $table) = @_;
-    my $esc = $dbh->get_info( 14 );
-    my $_table  =~ s/([_%])/$esc$1/g;
-    my $sth = $dbh->table_info('%', '%', $_table);
+    my $sth = $dbh->table_info('%', '%', $table);
     $sth->execute();
     my @rv = @{$sth->fetchall_arrayref};
     $sth->finish;

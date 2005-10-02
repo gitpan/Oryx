@@ -4,8 +4,10 @@ use Test::More tests => 7;
 use Oryx;
 use YAML;
 
+my $conn = YAML::LoadFile('t/dsn.yml');
+my $storage = Oryx->connect($conn);
 #my $storage = Oryx->connect([ "dbi:Pg:dbname=test", 'test', 'test' ]);
-my $storage = Oryx->connect([ "dbm:Deep:datapath=/tmp" ]);
+#my $storage = Oryx->connect([ "dbm:Deep:datapath=/tmp" ]);
 
 use Child1;
 

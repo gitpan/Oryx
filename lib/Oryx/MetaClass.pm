@@ -26,8 +26,6 @@ sub delete    { }
 sub search    { }
 sub construct { }
 
-sub dbh { $_[0]->dbh }
-
 sub meta {
     my $class = shift;
     $class->{meta} = shift if @_;

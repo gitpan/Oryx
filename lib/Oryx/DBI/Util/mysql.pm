@@ -1,18 +1,18 @@
-package Oryx::DBI::Util::Pg;
+package Oryx::DBI::Util::mysql;
 
 use base qw(Oryx::DBI::Util);
 
 our %SQL_TYPES = (
-    'Oid'       => 'integer PRIMARY KEY',
-    'Integer'   => 'integer',
-    'Reference' => 'integer',
+    'Oid'       => 'bigint PRIMARY KEY',
+    'Integer'   => 'bigint',
+    'Reference' => 'bigint',
     'String'    => 'varchar',
     'Text'      => 'text',
     'Complex'   => 'text',
-    'Binary'    => 'bytea',
-    'Float'     => 'numeric',
-    'Boolean'   => 'integer',
-    'DateTime'  => 'timestamp',
+    'Binary'    => 'blob',
+    'Float'     => 'float',
+    'Boolean'   => 'tinyint',
+    'DateTime'  => 'datetime',
 );
 
 sub new { return bless { }, $_[0] };
@@ -20,7 +20,12 @@ sub new { return bless { }, $_[0] };
 sub type2sql {
     my ($self, $type, $size) = @_;
     my $sql_type = $SQL_TYPES{$type};
-    $sql_type .= "($size)" if defined $size;
+    if ($type eq 'String') {
+	$size ||= '255';
+	$sql_type .= "($size)";
+    } elsif ($type eq 'Integer' and defined $size) {
+	$sql_type .= "($size)";
+    }
     return $sql_type;
 }
 
@@ -51,13 +56,13 @@ sub columnDrop {
 
 sub tableExists {
     my ($self, $dbh, $table) = @_;
-    my $sth = $dbh->table_info('%', '%', $table);
     my $esc = $dbh->get_info( 14 );
-    $table  =~ s/([_%])/$esc$1/g;
+    my $_table  =~ s/([_%])/$esc$1/g;
+    my $sth = $dbh->table_info('%', '%', $_table);
     $sth->execute();
     my @rv = @{$sth->fetchall_arrayref};
     $sth->finish;
-    return @rv;
+    return grep { $_->[2] eq $table } @rv;
 }
 
 sub tableCreate {
@@ -98,7 +103,13 @@ sub sequenceExists {
 
 sub sequenceCreate {
     my ($self, $dbh, $table) = @_;
-    my $sql = "CREATE SEQUENCE ".$self->_seq_name($table);
+
+    unless ($self->tableExists($dbh, 'oryx_sequences')) {
+	$self->tableCreate($dbh, 'oryx_sequences', ['name', 'value'], ['VARCHAR(255)', 'BIGINT']);
+	$self->indexCreate($dbh, 'oryx_sequences', 'name');
+    }
+
+    my $sql = "INSERT INTO oryx_sequences VALUES ('".$self->_seq_name($table)."', 0)";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish;
@@ -106,7 +117,7 @@ sub sequenceCreate {
 
 sub sequenceDrop {
     my ($self, $dbh, $table) = @_;
-    my $sql = "DROP SEQUENCE ".$self->_seq_name($table);
+    my $sql = "DELETE FROM oryx_sequences WHERE name='".$self->_seq_name($table)."'";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish;
@@ -114,7 +125,7 @@ sub sequenceDrop {
 
 sub indexCreate {
     my ($self, $dbh, $table, $field) = @_;
-    my $sql = "CREATE INDEX ".$field."_index ON $table";
+    my $sql = "CREATE INDEX ".$field."_index ON $table ($field)";
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     $sth->finish;
@@ -126,8 +137,12 @@ sub indexDrop {
 
 sub nextval {
     my ($self, $dbh, $table) = @_;
-    my $sth = $dbh->prepare_cached("SELECT nextval(?)");
-    $sth->execute($self->_seq_name($table)) unless $sth->{Active};
+    my $sth = $dbh->prepare_cached("UPDATE oryx_sequences SET value=(value + 1) WHERE name=?");
+    $sth->execute($self->_seq_name($table));
+    $sth->finish;
+
+    $sth = $dbh->prepare_cached("SELECT value FROM oryx_sequences WHERE name=?");
+    $sth->execute($self->_seq_name($table));
     my $id = $sth->fetch->[0];
     $sth->finish;
     return $id;

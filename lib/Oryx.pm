@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -188,8 +188,8 @@ concerned where tables and columns are mentioned - separate files are
 used for L<DBM::Deep> based storage instead of tables (see
 L<Oryx::DBM> for details).
 
-This is still a very early release and only supports L<DBM::Deep> and
-Postgres back-ends at the moment. Having said this, however, Oryx is
+This is still a very early release and only supports L<DBM::Deep>, MySQL
+and Postgre back-ends at the moment. Having said this, however, Oryx is
 already quite usable. It needs to be thrashed a lot more and support
 for the rest of the popular RDBMS needs to be added. Things will
 change (for the better, one hopes); if you're interested in helping to
@@ -698,10 +698,8 @@ Tests are a bit sparse at the moment.
 
 =item B<Support for MySQL, Oracle, etc.>
 
-Only PostgreSQL and DBM::Deep are supported currently. It should be
-fairly trivial to add support for the other RDBMS' - MySQL doesn't
-have sequences so we'll probably have to create an additional table to
-manage sequences, c'est la vie.
+Only MySQL, PostgreSQL and DBM::Deep are supported currently. It should be
+fairly trivial to add support for the other RDBMS'
 
 =item B<More documentation>
 

@@ -23,6 +23,7 @@ lib/Oryx/DBI/Class.pm
 lib/Oryx/DBI/Method.pm
 lib/Oryx/DBI/Parent.pm
 lib/Oryx/DBI/Util.pm
+lib/Oryx/DBI/Util/mysql.pm
 lib/Oryx/DBI/Util/Pg.pm
 lib/Oryx/DBM.pm
 lib/Oryx/DBM/Association.pm
@@ -58,6 +59,7 @@ t/Child1.pm
 t/Class1.pm
 t/Class2.pm
 t/connect.t
+t/dsn.yml
 t/HashClass.pm
 t/inheritance.t
 t/Parent1.pm

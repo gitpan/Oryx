@@ -2,8 +2,11 @@ use lib 't', 'lib';
 
 use Test::More tests => 12;
 use Oryx;
+use YAML;
 
-my $storage = Oryx->connect([ 'dbm:Deep:datapath=/tmp' ]);
+my $conn = YAML::LoadFile('t/dsn.yml');
+warn "CONN =======> ".YAML::Dump($conn);
+my $storage = Oryx->connect($conn);
 
 use ArrayClass;
 use Class1;

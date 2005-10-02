@@ -57,7 +57,7 @@ sub util {
 
 sub set_util {
     my ($self, $dsn) = @_;
-    $dsn =~ /^dbi:(\w+)/;
+    $dsn =~ /^dbi:(\w+)/i;
     my $utilClass = __PACKAGE__."\::Util\::$1";
 
     eval "use $utilClass";

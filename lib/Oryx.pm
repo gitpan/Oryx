@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -162,56 +162,55 @@ Oryx - Meta-Model Driven Object Persistance with Multiple Inheritance
  @keys   = keys   %{$page->images};
  @values = values %{$page->images};
 
-=head1 INTRODUCTION
-
-Oryx is an attempt at creating an Object Persistence framework which
-is not coupled to any particular storage type - in other words, you
-should be able to swap out an RDMBS with a DBM style database
-without changing the persistent classes at all.
-
-This is still a very early release and only supports Postgres at the
-moment. Having said this, however, Oryx is already quite usable in an
-academic non-enterprise sort of way. It needs to be thrashed a lot
-more and support for the rest of the popular RDBMS needs to be
-added. Things will change (for the better, one hopes); if you're
-interested in helping to precipitate that change... let me know, you'd
-be most welcome.
-
-This documentation applies to classes persisted in DBM::Deep style
-storage as well except insofar as the implementation details are
-concerned where tables and columns are mentioned - separate files are
-used for DBM::Deep based storage instead of tables (see Oryx::DBM for
-details).
-
 =head1 DESCRIPTION
 
-The central idea behind Oryx is to use a meta model which fits in as
-closely with Perl's own as possible - and due to Perl's excellent
-introspection capabilities and enormous flexibility - is very close
-indeed. For this reason Hash, Array and Reference association types
-are implemented with liberal use of `tie'. The use of a meta model,
-albeit a very transparent one, conceptually supports the de-coupling
-of storage back-end from persistent classes, and, for the most part,
-beside a really small amout of meta-data, you would use persistent
-classes in a way that is virtually indistinguishable from ordinary
-perl classes.
+Oryx is an Object Persistence framework which is not coupled to any
+particular storage back-end. In other words, you should be able to
+swap out an RDMBS with a DBM style database (and vice versa) without
+changing your persistent classes at all.
+
+This is achieved with the use a meta model which fits in as closely
+with Perl's own as possible - and due to Perl's excellent
+introspection capabilities and enormous flexibility - this is very
+close indeed. For this reason Hash, Array and Reference association
+types are implemented with liberal use of `tie'. The use of a meta
+model, albeit a very transparent one, conceptually supports the
+de-coupling of storage back-end from persistent classes, and, for the
+most part, beside a really small amout of meta-data, you would use
+persistent classes in a way that is virtually indistinguishable from
+ordinary perl classes.
+
+=head1 INTRODUCTION
+
+This documentation applies to classes persisted in L<DBM::Deep> style
+storage as well except insofar as the implementation details are
+concerned where tables and columns are mentioned - separate files are
+used for L<DBM::Deep> based storage instead of tables (see
+L<Oryx::DBM> for details).
+
+This is still a very early release and only supports L<DBM::Deep> and
+Postgres back-ends at the moment. Having said this, however, Oryx is
+already quite usable. It needs to be thrashed a lot more and support
+for the rest of the popular RDBMS needs to be added. Things will
+change (for the better, one hopes); if you're interested in helping to
+precipitate that change... let me know, you'd be most welcome.
 
 =head1 CREATING PERSISTENT CLASSES
 
 Creating persistent classes is simple, there is no need to create any
 database tables by hand as the DB schema is deployed automatically as
-needed (see AUTOMATIC TABLE CREATION below).
+needed (see L</"AUTOMATIC TABLE CREATION"> below).
 
 The following three steps illustrate how this is done:
 
 =over
 
-=item B<Inherit from Oryx::Class or subclass thereof (see INHERITANCE below)>:
+=item B<< Inherit from Oryx::Class or subclass thereof (see L</INHERITANCE> below) >>:
 
  package CMS::Page;
  use base qw(Oryx::Class);
 
-=item B<Define meta-data (see DEFINING CLASS META-DATA below)>:
+=item B<< Define meta-data (see L</"DEFINING CLASS META-DATA"> below) >>:
 
  our $schema = {
      attributes => [{
@@ -237,7 +236,7 @@ The following three steps illustrate how this is done:
  
  1;
 
-=item B<Connect to storage (see CONNECTING TO STORAGE below)>:
+=item B<< Connect to storage (see L</"CONNECTING TO STORAGE"> below) >>:
 
 ...far away in another piece of code...
 
@@ -254,7 +253,7 @@ Now we're ready to start using persistent CMS::Page objects (and friends).
 
 =head1 CREATING AND USING OBJECTS
 
-Oryx::Class defines a I<create> method (see Oryx::Class for more)
+Oryx::Class defines a I<create> method (see L<Oryx::Class> for more)
 which takes a hash reference as a constructor for setting up the
 object's initial state:
 
@@ -265,12 +264,12 @@ object's initial state:
      });
 
 Once an object has been instatiated, attribute mutators can be used to
-get and set attributes on the object (see ATTRIBUTES below):
+get and set attributes on the object (see L</ATTRIBUTES> below):
 
      $page->number(42);
 
 Associations are similar except that we associate one object with
-another (see ASSOCIATIONS below), so we create an instance of the
+another (see L</ASSOCIATIONS> below), so we create an instance of the
 target class:
 
      my $paragraph1 = CMS::Paragraph->create({
@@ -283,12 +282,15 @@ tied object (an ARRAY in this case), we can:
      $page->paragraphs->[0] = $paragraph1;
 
 Then update your object when done:
+
      $page->update;
 
 Or if you no longer need it:
+
      $page->delete;
 
 Finally, commit your changes:
+
      $page->commit;
 
 =head1 DEFINING CLASS META-DATA
@@ -361,10 +363,35 @@ supported as follows:
 
 =back
 
+=head1 AUTOMATIC TABLE CREATION
+
+With Oryx, you never need to write a single line of SQL although you
+can if you want to in exactly the same way as you would when using
+L<Class::DBI> (actually it's a L<ImA::DBI> feature). Tables are named
+sensibly as pluralised versions of the class name with link table
+names equally intuitive.
+
+=head2 Enabling auto_deploy for all classes
+
+To enable automatic table creation, you need to do the following near
+the top of your application before you I<use> any of your classes:
+
+ use Oryx::Class;
+ Oryx::Class->auto_deploy( 1 );
+
+Because the check to see if a table exists is made once when the class
+is first I<use>'ed, the performance penalty for this is minimal in
+long running process environments such as mod perl. Otherwise when
+running in an environment where your code is recompiled each time the
+program is run, or you would like more control, you can leave
+I<auto_deploy> turned off at the top level (which it is by default)
+and simply turn it on for each new class that you're adding to the
+schema as this method is inherited.
+
 =head1 ATTRIBUTES
 
 Attributes are declared as having a I<name> and a I<type> and as such
-are simply tied Oryx::Value derivatives (see Oryx::Value for details)
+are simply tied Oryx::Value derivatives (see L<Oryx::Value> for details)
 which are generally associated with a field (or column) in the
 underlying database, and which have mutators which are automatically
 created in the class for getting and setting these values.
@@ -378,8 +405,8 @@ places.
 
 Input is checked when assigning values to attributes and return values
 are cast to the correct type using a combination of regular
-expressions, the Data::Types module, YAML or Class::Date where
-relevant. Where additional properties are set such as I<size> or
+expressions, the L<Data::Types> module, L<YAML> or L<Class::Date>
+where relevant. Where additional properties are set such as I<size> or
 I<precision>, these are checked also and your program will croak if
 types mismatch or overflow.
 
@@ -424,7 +451,7 @@ to the mutator as follows:
  $page->date_created( date(localtime) );
 
 or any value which is valid input to the Class::Date::new constructor
-this includes ARRAY refs etc. (see Class::Date for details).
+this includes ARRAY refs etc. (see L<Class::Date> for details).
 
 Attributes declared as DateTime types additionaly support a I<format>
 property which is used to set Class::Date::DATE_FORMAT for date
@@ -468,7 +495,7 @@ automagically.
 Furthermore one can also have to-many ordered (Array) or to-many
 keyed (Hash) associations which are mixed - in other words one class
 can have an ARRAY (or HASH) reference which can contain instances of
-different classes (see ABSTRACT CLASSES below).
+different classes (see L</"ABSTRACT CLASSES"> below).
 
 =head2 Reference
 
@@ -692,6 +719,12 @@ I'm sure there are some... if I had more tests, I know I'd find 'em
 Special thanks to:
 
 Sam Vilain; Aaron Trevena
+
+=head1 SEE ALSO
+
+L<Class::DBI>, L<Tangram>, L<Class::Tangram>, L<SQL::Abstract>,
+L<Class::Data::Inheritable>, L<Data::Types>, L<DBM::Deep>, L<DBI>,
+L<ImA::DBI>
 
 =head1 AUTHOR
 

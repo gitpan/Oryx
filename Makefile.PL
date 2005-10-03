@@ -1,11 +1,19 @@
 use inc::Module::Install;
 
 name('Oryx');
-author('Richard Hundt <richard@protea-systems.com>');
-abstract('Orthogonal Object Persistence');
+author('Richard Hundt <richard NO SPAM AT protea-systems.com>');
+abstract('Object Persistence');
 license('artistic');
 version_from('lib/Oryx.pm');
-build_requires('Test::More');
+build_requires(qw(
+    YAML
+    Class::Data::Inheritable
+    Class::Date
+    DBM::Deep
+    Test::More
+    Data::Types
+    File::Spec
+));
 
 requires(qw(
     perl 5.6.1
@@ -17,6 +25,7 @@ requires(qw(
     Ima::DBI
     DBM::Deep
     Data::Types
+    File::Spec
 ));
 
 check_nmake();

@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -95,16 +95,16 @@ Oryx - Meta-Model Driven Object Persistance with Multiple Inheritance
  
  # for DBM::Deep back-end
  Oryx->connect(['dbm:Deep:datapath=/path/to/data'], 'CMS::Schema');
- 
- $storage->deployClass('CMS::Page');
- $storage->deploySchema('CMS::Schema');
- 
+
  #===========================================================================
  # deploy the schema
- $storage->deploySchema();
+ $storage->deploySchema();              # for all known classes (via `use')
+ $storage->deploySchema('CMS::Schema');
+ $storage->deployClass('CMS::Page');
  
- # or automatically build tables as needed
- Oryx::Class->auto_deploy(1);
+ # automatically deploy as needed
+ Oryx::Class->auto_deploy(1);           # for all classes
+ CMS::Page->auto_deploy(1);             # only for this class
  
  #===========================================================================
  # define a persistent class
@@ -164,7 +164,8 @@ Oryx - Meta-Model Driven Object Persistance with Multiple Inheritance
 
 =head1 DESCRIPTION
 
-Oryx is an Object Persistence framework which is not coupled to any
+Oryx is an Object Persistence framework which supports both object-relational
+mapping as well as DMB style databases and as such is not coupled to any
 particular storage back-end. In other words, you should be able to
 swap out an RDMBS with a DBM style database (and vice versa) without
 changing your persistent classes at all.

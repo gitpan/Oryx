@@ -1,7 +1,7 @@
 use lib 't', 'lib';
 
 use Test::More tests => 12;
-use Oryx;
+use Oryx (auto_deploy => 1);
 use YAML;
 
 my $conn = YAML::LoadFile('t/dsn.yml');
@@ -12,8 +12,8 @@ use ArrayClass;
 use Class1;
 use Class2;
 
-$storage->deploySchema();
-$storage->dbh->commit;
+#$storage->deploySchema();
+#$storage->dbh->commit;
 
 ok($storage->ping);
 

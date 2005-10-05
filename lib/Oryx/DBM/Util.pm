@@ -9,14 +9,14 @@ sub new {
 }
 
 sub tableExists {
-    my ($self, $dbm, $class) = @_;
-    return -e File::Spec->catfile($dbm->datapath, $class->table);
+    my ($self, $dbm, $table) = @_;
+    return -e File::Spec->catfile($dbm->datapath, $table);
 }
 
 sub tableCreate {
-    my ($self, $dbm, $class) = @_;
-    my $filename = File::Spec->catfile($dbm->datapath, $class->table);
-    $dbm->catalog->put( $class->table, {
+    my ($self, $dbm, $table) = @_;
+    my $filename = File::Spec->catfile($dbm->datapath, $table);
+    $dbm->catalog->put( $table, {
 	file    => $filename,
 	type    => DBM::Deep::TYPE_ARRAY,
 	#locking => 1,

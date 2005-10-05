@@ -5,6 +5,7 @@ use Oryx::DBM::Association;
 use Oryx::DBM::Attribute;
 use Oryx::DBM::Method;
 use Oryx::DBM::Parent;
+use Carp;
 
 use base qw(Oryx::MetaClass);
 
@@ -17,6 +18,8 @@ sub dbh { $_[0]->storage }
 sub dbm {
     my $class = ref $_[0] || $_[0];
     unless ($class->_dbm) {
+	Carp::confess('no catalog entry for table :'.$class->table)
+	    unless defined $class->dbh->catalog->get($class->table);
 	$class->_dbm(
 	    DBM::Deep->new(%{ $class->dbh->catalog->get($class->table) })
         );

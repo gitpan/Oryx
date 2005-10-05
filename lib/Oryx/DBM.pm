@@ -21,8 +21,6 @@ sub commit {  }
 sub connect {
     my ($self, $conn, $schema) = @_;
 
-    $self->init('Oryx::DBM::Class', $conn, $schema);
-
     if ($conn->[0] =~ /^dbm:Deep:datapath=(.+)$/) {
         $self->_croak('ERROR: connect called without a datapath')
             unless $1;
@@ -32,6 +30,8 @@ sub connect {
     }
 
     $self->catalog(DBM::Deep->new($self->datapath.'/oryx_catalog'));
+
+    $self->init('Oryx::DBM::Class', $conn, $schema);
 
     return $self;
 }
@@ -78,7 +78,7 @@ sub deploySchema {
 sub deployClass {
     my ($self, $class) = @_;
     $DEBUG && $self->_carp("DEPLOYING $class");
-    $self->util->tableCreate($self, $class);
+    $self->util->tableCreate($self, $class->table);
 }
 
 1;

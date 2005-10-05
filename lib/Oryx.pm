@@ -4,10 +4,18 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
+
+sub import {
+    my $class = shift;
+    my %param = @_;
+    if (defined $param{auto_deploy}) {
+	Oryx::Class->auto_deploy($param{auto_deploy});
+    }
+}
 
 sub init {
     my ($self, $Class, $conn, $schema) = @_;
@@ -15,8 +23,7 @@ sub init {
     $DEBUG && $self->_carp("SCHEMA => $schema, Class => $Class");
     unless (ref($schema) and isa($schema, 'Oryx::Schema')) {
         $schema = 'Oryx::Schema' unless defined $schema;
-	eval "use $schema";
-	croak($@) if $@;
+	eval "use $schema"; croak($@) if $@;
 	$schema = $schema->new;
 	$DEBUG && $self->_carp("new schema instance => $schema");
     }
@@ -103,7 +110,7 @@ Oryx - Meta-Model Driven Object Persistance with Multiple Inheritance
  $storage->deployClass('CMS::Page');
  
  # automatically deploy as needed
- Oryx::Class->auto_deploy(1);           # for all classes
+ use Oryx ( auto_deploy => 1 );           # for all classes
  CMS::Page->auto_deploy(1);             # only for this class
  
  #===========================================================================
@@ -377,8 +384,7 @@ names equally intuitive.
 To enable automatic table creation, you need to do the following near
 the top of your application before you I<use> any of your classes:
 
- use Oryx::Class;
- Oryx::Class->auto_deploy( 1 );
+ use Oryx ( auto_deploy => 1 );
 
 Because the check to see if a table exists is made once when the class
 is first I<use>'ed, the performance penalty for this is minimal in

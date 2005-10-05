@@ -14,12 +14,14 @@ sub new {
 sub connect {
     my ($self, $conn, $schema) = @_;
 
-    $self->init('Oryx::DBI::Class', $conn, $schema);
+    eval "use $schema"; $self->_croak($@) if $@;
 
-    my $db_name = $self->schema->name;
+    my $db_name = $schema->name;
+
     ref($self)->set_db($db_name, @$conn)
         unless UNIVERSAL::can($self, "db_$db_name");
 
+    $self->init('Oryx::DBI::Class', $conn, $schema);
     return $self;
 }
 

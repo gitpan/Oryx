@@ -6,9 +6,9 @@ use Scalar::Util qw(weaken);
 
 use base qw(Class::Data::Inheritable);
 
-__PACKAGE__->mk_classdata("auto_deploy");
+BEGIN {
+    __PACKAGE__->mk_classdata("auto_deploy");
 
-sub BEGIN {
     $XML_DOM_Lite_Is_Available = 1;
     eval "use XML::DOM::Lite qw(Parser Node :constants);";
     $XML_DOM_Lite_Is_Available = 0 if $@;
@@ -53,6 +53,7 @@ sub init {
 # Iron Maiden is optional, of course).
 sub import {
     my $class = shift;
+    my %param = @_;
 
     $DEBUG>1 && $class->_carp("importing...");
 

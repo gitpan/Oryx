@@ -51,6 +51,7 @@ lib/Oryx/Value/Text.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
+Oryx-0.08.tar.gz
 t/array.t
 t/ArrayClass.pm
 t/assoc.t
@@ -60,6 +61,8 @@ t/Class1.pm
 t/Class2.pm
 t/connect.t
 t/dsn.yml
+t/dsn.yml.dbm
+t/dsn.yml.pg
 t/HashClass.pm
 t/inheritance.t
 t/Parent1.pm

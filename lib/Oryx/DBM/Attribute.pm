@@ -4,16 +4,17 @@ use Oryx::Value;
 
 use base qw(Oryx::Attribute);
 
+sub create {
+    my ($self, $proto) = @_;
+    my $attr_name = $self->name;
+    $proto->{$attr_name} = $self->typeClass->deflate($proto->{$attr_name});
+}
+
 sub update {
     my ($self, $proto, $object) = @_;
     my $attr_name = $self->name;
-    if (ref tied($object->{$attr_name})
-    eq 'Oryx::Value::Complex') {
-	$proto->{$attr_name} =
-            tied($object->{$attr_name})->dump;
-    } else {
-	$proto->{$attr_name} = $object->$attr_name;
-    }
+    my $value = $object->$attr_name;
+    $proto->{$attr_name} = $self->typeClass->deflate($value);
 }
 
 1;

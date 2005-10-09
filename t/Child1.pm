@@ -6,6 +6,7 @@ our $schema = {
     attributes => [{
         name => 'child_attrib1',
         type => 'String',
+        required => 1,
     }],
 };
 

@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -723,7 +723,19 @@ I'm sure there are some... if I had more tests, I know I'd find 'em
 
 Special thanks to:
 
-Sam Vilain; Aaron Trevena
+=over 4
+
+=item I<Sam Vilain>
+
+For educating me about meta-models, feedback and for hosting the
+subversion repository.
+
+=item I<Andrew Sterling Hanenkamp>
+
+For bug reports and patches, and his ongoing help with documentation,
+tests and good suggestions.
+
+=over
 
 =head1 SEE ALSO
 

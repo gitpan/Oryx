@@ -3,27 +3,27 @@ use base qw(Oryx::Value);
 
 use Data::Types qw(is_string to_string);
 
-sub FETCH {
-    my $self = shift;
-    unless ($self->{VALUE}) {
-	$self->STORE($self->{owner}->{$self->{meta}->name});
-    }
-    return to_string($self->{VALUE});
-}
-
-sub STORE {
+sub check_size {
     my ($self, $value) = @_;
-
-    $self->_croak("'$value' not a string")
-      unless is_string($value);
-
-    if (defined $self->{meta}->size) {
-	$self->_croak("size limit exeeded for string: '$value'")
-	  unless length($value) <= $self->{meta}->size;
+    if (defined $self->meta->size) {
+	return length($value) <= $self->meta->size;
     }
-
-    $self->{VALUE} = $value;
+    return 1;
 }
 
+sub check_type {
+    my ($self, $value) = @_;
+    return is_string($value);
+}
+
+sub inflate {
+    my ($self, $value) = @_;
+    return to_string($value);
+}
+
+sub deflate {
+    my ($self, $value) = @_;
+    return to_string($value);
+}
 
 1;

@@ -4,39 +4,21 @@ use YAML;
 
 use base qw(Oryx::Value);
 
-sub TIESCALAR {
-    my $class = shift;
-    my ($meta, $owner) = @_;
-
-    my $self = bless {
-	meta  => $meta, # the Attribute instance
-	owner => $owner,
-    }, $class;
-
-    return $self;
-}
-
-sub FETCH {
-    my ($self) = @_;
-    return $self->VALUE;
-}
-
-sub STORE {
+sub inflate {
     my ($self, $value) = @_;
-    $self->{VALUE} = $value;
-}
-
-sub VALUE {
-    my $self = shift;
-    unless (defined $self->{VALUE}) {
-	eval { $self->{VALUE} = YAML::Load($self->{owner}->{$self->{meta}->name}) };
+    if (defined $value) {
+	return YAML::Load($value);
     }
-    $self->{VALUE};
 }
 
-sub dump {
-    my $self = shift;
-    return YAML::Dump($self->{VALUE});
+sub deflate {
+    my ($self, $value) = @_;
+    return YAML::Dump($value);
+}
+
+sub check_type {
+    my ($self, $value) = @_;
+    return ref($value);
 }
 
 1;

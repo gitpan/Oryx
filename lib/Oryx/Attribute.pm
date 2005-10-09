@@ -9,8 +9,7 @@ sub new {
 	meta  => $meta,
     }, $class;
 
-    my $type = $meta->{type};
-    eval 'use Oryx::Value::'.$self->type;
+    eval 'use '.$self->typeClass;
     $self->_croak($@) if $@;
 
     no strict 'refs';
@@ -30,8 +29,10 @@ sub construct {
     my ($self, $obj) = @_;
 
     my $attr_name = $self->name;
+    $obj->{$attr_name} = $self->typeClass->inflate($obj->{$attr_name});
+
     my @args = ($self, $obj);
-    tie $obj->{$attr_name}, "Oryx::Value::".$self->type, @args;
+    tie $obj->{$attr_name}, $self->typeClass, @args;
 
     return $obj;
 }
@@ -46,15 +47,24 @@ sub type {
     $self->getMetaAttribute("type") || 'String';
 }
 
-sub primitive {
-    my $self = shift;
-    my $typeClass = 'Oryx::Value::'.$self->type;
-    return $typeClass->primitive;
-}
-
 sub size {
     my $self = shift;
     return $self->getMetaAttribute("size");
+}
+
+sub required {
+    my $self = shift;
+    return $self->getMetaAttribute('required');
+}
+
+sub primitive {
+    my $self = shift;
+    return $self->typeClass->primitive;
+}
+
+sub typeClass {
+    my $self = shift;
+    return 'Oryx::Value::'.$self->type;
 }
 
 sub _mk_accessor {

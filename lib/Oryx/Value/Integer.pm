@@ -3,15 +3,27 @@ use base qw(Oryx::Value);
 
 use Data::Types qw(is_int to_int);
 
-sub FETCH {
-    my $self = shift;
-    return to_int($self->{VALUE});
+sub check_type {
+    my ($self, $value) = @_;
+    return is_int($value);
 }
 
-sub STORE {
+sub check_size {
     my ($self, $value) = @_;
-    $self->_croak("'$value' is not an integer") unless is_int($value);
-    $self->{VALUE} = $value;
+    if (defined $self->meta->size) {
+	return $value <= $self->meta->size;
+    }
+    return 1;
+}
+
+sub inflate {
+    my ($self, $value) = @_;
+    return to_int($value);
+}
+
+sub deflate {
+    my ($self, $value) = @_;
+    return to_int($value);
 }
 
 1;

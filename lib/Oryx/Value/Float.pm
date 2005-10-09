@@ -3,24 +3,19 @@ use base qw(Oryx::Value);
 
 use Data::Types qw(is_float to_float);
 
-sub FETCH {
-    my $self = shift;
-    return to_float($self->{VALUE});
+sub check_type {
+    my ($self, $value) = @_;
+    return is_float($value);
 }
 
-sub STORE {
+sub check_size {
     my ($self, $value) = @_;
-    $self->_croak("`$value' is not an floating point number")
-      unless is_float($value);
-
-    my $p = $self->{meta}->getMetaAttribute("precision");
+    my $p = $self->meta->getMetaAttribute("precision");
     if (defined $p) {
-	my $rx = '\d+\.\d{0,'.$p.'}';
-	$self->_croak("precision mismatch for value '".$value."'")
-	  unless $p =~ /$rx/;
+	my $rx = '^\d+\.\d{0,'.$p.'}$';
+	return $value =~ /$rx/;
     }
-
-    $self->{VALUE} = $value;
+    return 1;
 }
 
 1;

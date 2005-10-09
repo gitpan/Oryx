@@ -25,6 +25,7 @@ lib/Oryx/DBI/Parent.pm
 lib/Oryx/DBI/Util.pm
 lib/Oryx/DBI/Util/mysql.pm
 lib/Oryx/DBI/Util/Pg.pm
+lib/Oryx/DBI/Util/SQLite.pm
 lib/Oryx/DBM.pm
 lib/Oryx/DBM/Association.pm
 lib/Oryx/DBM/Association/Array.pm
@@ -51,11 +52,12 @@ lib/Oryx/Value/Text.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
-Oryx-0.08.tar.gz
 t/array.t
 t/ArrayClass.pm
 t/assoc.t
 t/AssocClass.pm
+t/attributes.t
+t/AttrsClass.pm
 t/Child1.pm
 t/Class1.pm
 t/Class2.pm

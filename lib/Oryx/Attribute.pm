@@ -9,6 +9,10 @@ Oryx::Attribute - Attribute meta-type for Oryx persistent classes
 =head1 SYNOPSIS
 
  my $attrib = Oryx::Attribute->new( \%meta, $owner );
+ $attrib->name;                 # name used for accessor generation
+ $attrib->size;                 # size constraint for the value
+ $attrib->type;                 # value type
+ $attrib->required;             # NOT NULL
 
 =head1 DESCRIPTION
 
@@ -183,7 +187,7 @@ Richard Hundt <richard NO SPAM AT protea-systems.com>
 
 =head1 THANKS TO
 
-Andrew Sterling Hanencamp
+Andrew Sterling Hanenkamp
 
 =head1 LICENCE
 

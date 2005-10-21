@@ -303,6 +303,10 @@ This is the driver for L<DBD::mysql> connections.
 
 This is the driver for L<DBD::Pg> connections.
 
+=item L<Oryx::DBI::Util::SQLite>
+
+This is the driver for L<DBD::SQLite> connections.
+
 =item L<Oryx::DBM::Util>
 
 This is the analog for L<Oryx::DBI::Util> that works with L<Oryx::DBM>. Provides functionality for checking for and manipulating tables and sequences.

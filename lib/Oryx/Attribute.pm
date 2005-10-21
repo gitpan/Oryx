@@ -4,7 +4,7 @@ use base qw(Oryx::MetaClass);
 
 =head1 NAME
 
-Oryx::Attrbute - Attribute meta-type for Oryx persistent classes
+Oryx::Attribute - Attribute meta-type for Oryx persistent classes
 
 =head1 SYNOPSIS
 

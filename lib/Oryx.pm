@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -141,7 +141,7 @@ used for L<DBM::Deep> based storage instead of tables (see
 L<Oryx::DBM> for details).
 
 This is still a very early release and only supports L<DBM::Deep>, MySQL
-and Postgres back-ends at the moment. Having said this, however, Oryx is
+SQLite and Postgres back-ends at the moment. Having said this, however, Oryx is
 already quite usable. It needs to be thrashed a lot more and support
 for the rest of the popular RDBMS needs to be added. Things will
 change (for the better, one hopes); if you're interested in helping to
@@ -218,6 +218,14 @@ Here's an example of a Schema class :
 =head1 TODO
 
 =over
+
+=item B<Add support for bidrectional associations>
+
+At the moment all associations are implemented as unidirectional
+
+=item B<Add Oryx::Association::Set>
+
+Set associations using L<Set::Object>
 
 =item B<test test test>
 

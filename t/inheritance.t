@@ -7,16 +7,12 @@ use Data::Dumper;
 
 my $conn = YAML::LoadFile('t/dsn.yml');
 my $storage = Oryx->connect($conn);
-#my $storage = Oryx->connect([ "dbi:Pg:dbname=test", 'test', 'test' ]);
-#my $storage = Oryx->connect([ "dbm:Deep:datapath=/tmp" ]);
 
+use Oryx::Class (auto_deploy => 1);
 use Child1;
 
 #####################################################################
 ### SET UP
-
-$storage->deploySchema();
-$storage->dbh->commit;
 
 ok($storage->ping);
 my $id;
@@ -45,15 +41,3 @@ ok($retrieved->isa('Parent1'));
 ok($retrieved->isa('Parent2'));
 ok($retrieved->isa('Child1'));
 
-#####################################################################
-### TEAR DOWN
-
-my $dbh = $storage->dbh;
-$storage->util->tableDrop($dbh, 'parent1s');
-$storage->util->tableDrop($dbh, 'parent2s');
-$storage->util->tableDrop($dbh, 'child1s');
-$storage->util->tableDrop($dbh, 'child1_parents');
-$storage->util->sequenceDrop($dbh, 'parent1s');
-$storage->util->sequenceDrop($dbh, 'parent2s');
-$storage->util->sequenceDrop($dbh, 'child1s');
-$dbh->commit;

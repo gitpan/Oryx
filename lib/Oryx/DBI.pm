@@ -110,8 +110,7 @@ sub deployClass {
     foreach my $assoc (values %{$class->associations}) {
 	my $targetClass = $assoc->class;
 	eval "use $targetClass"; $self->_croak($@) if $@;
-
-	unless (lc($assoc->type) eq 'reference') {
+	if ($assoc->type ne 'Reference') {
 	    # create a link table
 	    my $lt_name = $assoc->link_table;
 	    my @lt_cols = $assoc->link_fields;
@@ -130,7 +129,7 @@ sub deployClass {
                 $dbh, $lt_name, \@lt_cols, \@lt_types
             );
 	}
-        else {
+        elsif (not $assoc->is_weak) {
 	    push @types,   $int;
 	    push @columns, $targetClass->table."_id";
 	}

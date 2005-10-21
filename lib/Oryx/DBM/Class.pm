@@ -9,7 +9,7 @@ use Carp;
 
 use base qw(Oryx::MetaClass);
 
-our $DEBUG = 2;
+our $DEBUG = 0;
 
 __PACKAGE__->mk_classdata('_dbm');
 

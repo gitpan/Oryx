@@ -1,14 +1,14 @@
 use lib 't', 'lib';
 
 use Test::More tests => 9;
-use Oryx (auto_deploy => 1);
+use Oryx;
 use Class::Date qw(date now);
 use YAML;
 
 my $conn = YAML::LoadFile('t/dsn.yml');
 my $storage = Oryx->connect($conn);
 
-use AttrsClass;
+use AttrsClass (auto_deploy => 1);
 
 ok($storage->ping);
 
@@ -37,12 +37,12 @@ ok($retrieved->attr_float == 12.34);
 
 isa_ok($retrieved->attr_datetime, 'Class::Date');
 ok($retrieved->attr_datetime->string);
-is($retrieved->attr_datetime, '1976-04-15');
+is($retrieved->attr_datetime, '1976-04-15 00:00:00');
 
 is_deeply($retrieved->attr_complex, { foo => 'bar', baz => ['one', 'II', 3]});
 
 my $dbh = $storage->dbh;
-$storage->util->tableDrop($dbh, 'attrsclasses');
-$storage->util->sequenceDrop($dbh, 'attrsclasses');
+$storage->util->tableDrop($dbh, 'attrsclass');
+$storage->util->sequenceDrop($dbh, 'attrsclass');
 $dbh->commit;
 

@@ -9,6 +9,8 @@ use base qw(Oryx Oryx::MetaClass);
 
 __PACKAGE__->mk_classdata("datapath");
 
+our $DEBUG = 1;
+
 sub new {
     my $class = shift;
     return bless { }, $class;

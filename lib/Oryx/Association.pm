@@ -2,6 +2,41 @@ package Oryx::Association;
 
 use base qw(Oryx::MetaClass);
 
+=head1 NAME
+
+Association - abstract base class for Association types
+
+=head1 SYNOPSIS
+
+ my $assoc = Oryx::Association->new($meta, $source);
+  
+ $assoc->source;                # association from
+ $assoc->class;                 # association to
+ $assoc->role;                  # name of association accessor
+ $assoc->type;                  # Array, Hash, Reference etc.
+ $assoc->constraint;            # Aggregate or Composition
+ $assoc->is_weak; 
+ $assoc->update_backrefs;
+ $assoc->link_table;
+
+=head1 DESCRIPTION
+
+This module represents an abstract base class for Oryx association
+types.
+
+=head1 METHODS
+
+=over
+
+=item new( $meta, $source )
+
+The constructor returns the correct instance of the correct
+subclass based on the C<type> field of the C<$meta> hashref passed
+as an argument. The C<$source> argument is the name of the class
+in which this association is defined (see L<Oryx::Class>)
+
+=cut
+
 sub new {
     my ($class, $meta, $source) = @_;
 
@@ -22,6 +57,32 @@ sub new {
     return $self;
 }
 
+=item create
+
+Abstract (see implementing subclasses)
+
+=item retrieve
+
+Abstract (see implementing subclasses)
+
+=item update
+
+Abstract (see implementing subclasses)
+
+=item delete
+
+Abstract (see implementing subclasses)
+
+=item search
+
+Abstract (see implementing subclasses)
+
+=item construct
+
+Abstract (see implementing subclasses)
+
+=cut
+
 sub create    { $_[0]->_croak("abstract") }
 sub retrieve  { $_[0]->_croak("abstract") }
 sub update    { $_[0]->_croak("abstract") }
@@ -39,10 +100,24 @@ sub _mk_accessor {
     };
 }
 
+=item source
+
+Simple accessor to the source class in which this association is
+defined.
+
+=cut
+
 sub source {
     my $self = shift;
     $self->{source};
 }
+
+=item class
+
+Simple accessor to the target class with which the source class has
+an associtation.
+
+=cut
 
 sub class {
     my $self = shift;
@@ -51,31 +126,32 @@ sub class {
     }
     $self->{class};
 }
+
+=item role
+
+Simple accessor to the association accessor name defined in the
+source class. Defaults to the target class' table name.
+
+=cut
+
 sub role {
     my $self = shift;
     unless (defined $self->{role}) {
-	unless ($self->{role} = $self->getMetaAttribute("role")) {
+        $self->{role} = $self->getMetaAttribute("role");
+	unless ($self->{role}) {
 	    # set some sensible defaults for creating the accessor
 	    $self->{role} = $self->class->table;
-	    if ($self->type eq 'Reference') {
-		# singular, so drop the last 's' or 'es' (the latter
-		# only if the penultimate 's' is not preceded by a
-		# vowel)... so that a name like 'houses' does not
-		# become 'hous' ... and so forth
-		if ($self->{role} =~ /[^aeiou]ses$/) {
-		    $self->{role} =~ s/es$//;
-		} elsif ($self->{role} =~ /hes$/) {
-		    $self->{role} =~ s/es$//;
-		} else {
-		    $self->{role} =~ s/s$//;
-		}
-	    }
 	}
     }
     $self->{role};
 }
 
-# Reference, Array or Hash... defaults to Reference.
+=item type
+
+Reference, Array or Hash... defaults to Reference.
+
+=cut
+
 sub type {
     my $self = shift;
     unless (defined $self->{type}) {
@@ -85,8 +161,24 @@ sub type {
     $self->{type};
 }
 
-# Aggregate, Composition ... Aggregate is the default,
-# Composition does a cascading delete.
+=item is_weak
+
+Simple accessor to the C<is_weak> meta-attribute. This is used
+for stopping Reference association types from creating a column
+in the target class for storing a reverse association.
+
+=cut
+
+sub is_weak { $_[0]->getMetaAttribute('is_weak') }
+
+=item constraint
+
+Simple accessor to the C<constraint> meta-attribute. Values are:
+Aggregate or Composition ... Aggregate is the default,
+Composition causes deletes to cascade.
+
+=cut
+
 sub constraint {
     my $self = shift;
     unless (defined $self->{constraint}) {
@@ -96,17 +188,47 @@ sub constraint {
     $self->{constraint};
 }
 
+=item update_backrefs
+
+Updates reverse Reference associations.
+
+B<NOTE:> Currently, reverse associations are made up of two
+unidirectional associations... link tables are therefore not shared.
+This will be fixed.
+
+=cut
+
 sub update_backrefs {
     my ($self, $obj, @things) = @_;
-    # update backrefs
-    if ($self->class->can($self->source->name)) {
-	my $backref = $self->source->name;
-	foreach (@things) {
-	    $_->$backref($obj);
-	    $_->update;
+    foreach my $rev_assoc (values %{$self->class->associations}) {
+	unless ($rev_assoc->type eq 'Reference') {
+	    $self->_carp(
+	        'weak associations not supported for non-Reference types'
+	    );
+	    next;
+	}
+	if ($rev_assoc->class eq $self->source) {
+	    my $backref = $rev_assoc->role;
+	    foreach my $target (@things) {
+		$target->$backref($obj);
+		$target->update unless $rev_assoc->is_weak;
+	    }
 	}
     }
 }
+
+=item link_table
+
+Returns a name for the link table for this association. Not relevant
+for Reference associations as these don't require a link table.
+
+This is just a shortcut for:
+
+     $self->source->table.'_'.$self->role.'_'.$self->class->table
+
+Override for custom association types as needed.
+
+=cut
 
 sub link_table {
     my $self = shift;
@@ -115,31 +237,20 @@ sub link_table {
 
 1;
 
-__END__
+=back
 
-=head1 NAME
+=head1 AUTHOR
 
-Association - abstract base class for Association types
+Richard Hundt <richard NO SPAM AT protea-systems.com>
 
-=head1 DESCRIPTION
+=head1 THANKS TO
 
-The key difference between Attributes and Associations is that
-Associations use Reference types. Associations with One multiplicity
-have a single reference, otherwise you get an Array of Reference types
-or a Hash of Reference types depending on the schema
-definition. Reference types are distinguished by the fact that they
-always point to instances of the same (target) class. The constraint
-MetaAttribute (Aggregate or Composition) determines
-whether updates and deletes cascade or not.
+Andrew Sterling Hanencamp
 
-The 'role' meta-attribute is optional for Associations. If not
-present, an accessor is created with the name set to that of the
-target Class' table name (which is a simple automatic pluralisation of
-the Class' name by the 'table' accessor in the target Class). If the
-Association is a 'Reference' type and the 'role' meta-attribute is not
-present, then an accessor is created for the Association by
-sigularising (stripping a trailing 's' off) the target Class's table
-name.
+=head1 LICENCE
+
+This module is free software and may be used under the same terms as
+Perl itself.
 
 =cut
 

@@ -79,6 +79,13 @@ sub construct {
     my $row  = $sth->fetch;
     my $parent = $self->class->retrieve( $row->[0] );
     $sth->finish;
+    unless (defined $parent) {
+        $self->_croak(
+            "undefined parent for $object [".$object->id.
+            "], you may have a diamond inheritance involving"
+            "a common, abstract super class"
+        );
+    }
 
     $object->$_($parent->$_) foreach keys %{$self->class->attributes};
     $object->PARENT($self->class, $parent);

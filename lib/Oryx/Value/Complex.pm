@@ -18,7 +18,7 @@ sub deflate {
 
 sub check_type {
     my ($self, $value) = @_;
-    return ref($value);
+    return 1;
 }
 
 1;

@@ -13,6 +13,7 @@ build_requires(qw(
     Test::More
     Data::Types
     File::Spec
+    Module::Pluggable
 ));
 
 requires(qw(
@@ -26,6 +27,7 @@ requires(qw(
     DBM::Deep
     Data::Types
     File::Spec
+    Module::Pluggable
 ));
 
 check_nmake();

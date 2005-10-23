@@ -109,10 +109,12 @@ is disabled, then you must do this.
 
 =cut
 
+use vars qw($XML_DOM_Lite_Is_Available);
+
 BEGIN {
     __PACKAGE__->mk_classdata("auto_deploy");
 
-    $XML_DOM_Lite_Is_Available = 1;
+    our $XML_DOM_Lite_Is_Available = 1;
     eval "use XML::DOM::Lite qw(Parser Node :constants);";
     $XML_DOM_Lite_Is_Available = 0 if $@;
 }
@@ -144,6 +146,7 @@ Initialises the class data (see L<Class::Data::Inheritable>)
 
 sub init {
     my $class = shift;
+    $class->_carp('initializing class data');
 
     # set up class data accessors :
     $class->mk_classdata("_meta");
@@ -160,6 +163,8 @@ sub init {
     $class->associations({});
     $class->methods({});
     $class->parents([]);
+
+    ${ $class.'::__initialized' } = 1;
 }
 
 =item import
@@ -172,10 +177,6 @@ installed.
 
 =cut
 
-# ... hooks in you, hooks in me, hooks in the ceiling for that
-# well-hung feeling... no big deal, no big sin... strung up on love I
-# got the hooks screwed in... man, you gotta love Perl (whereas loving
-# Iron Maiden is optional, of course).
 sub import {
     my $class = shift;
     my %param = @_;
@@ -190,12 +191,17 @@ sub import {
         or $class eq 'Oryx::MetaClass'
         or $class =~ /Oryx::[^:]+::Class/;
 
-    return if $class->can('_meta') and %{$class->attributes};
+    if (${ $class.'::__initialized' }) {
+        $DEBUG>1 && $class->_carp('already initialized, returning');
+        return;
+    }
 
     if (can($class, 'storage') and $class->storage) {
 	if (%Orphans) {
-	    $class->storage->schema->addClass($_)
-                foreach keys %Orphans;
+            foreach (keys %Orphans) {
+                $DEBUG>1 && $_->_carp('YAY! I am no longer an Orphan');
+	        $class->storage->schema->addClass($_)
+            }
 	    %Orphans = ();
 	}
 	$class->storage->schema->addClass($class);

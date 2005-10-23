@@ -2,7 +2,7 @@ use inc::Module::Install;
 
 name('Oryx');
 author('Richard Hundt <richard NO SPAM AT protea-systems.com>');
-abstract('Object Persistence');
+abstract('Object Persistence with Multiple Inheritance');
 license('artistic');
 version_from('lib/Oryx.pm');
 build_requires(qw(

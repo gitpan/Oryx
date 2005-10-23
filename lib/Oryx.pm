@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }

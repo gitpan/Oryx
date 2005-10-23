@@ -28,7 +28,7 @@ sub addClass {
 }
 
 sub hasClass {
-    return defined $_[0]->_classes->{$_[1]};
+    return $_[0]->_classes->{$_[1]};
 }
 
 sub getClass {

@@ -82,7 +82,7 @@ sub construct {
     unless (defined $parent) {
         $self->_croak(
             "undefined parent for $object [".$object->id.
-            "], you may have a diamond inheritance involving"
+            "], you may have a diamond inheritance involving".
             "a common, abstract super class"
         );
     }

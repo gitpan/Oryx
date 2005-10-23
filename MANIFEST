@@ -53,10 +53,6 @@ lib/Oryx/Value/Text.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
-Oryx-0.10.tar.gz
-Oryx-0.11.tar.gz
-Oryx-0.12.tar.gz
-Oryx-0.13.tar.gz
 t/ArrayClass.pm
 t/assocarray_pop.t
 t/assocarray_push.t
@@ -73,15 +69,11 @@ t/AttrsClass.pm
 t/Child1.pm
 t/Class1.pm
 t/Class2.pm
-t/classnames.t
 t/connect.t
 t/dsn.yml
-t/dsn.yml.dbm
 t/dsn.yml.pg
 t/HashClass.pm
 t/inheritance.t
 t/Parent1.pm
 t/Parent2.pm
-t/Security/Permission.pm
-t/Security/Role.pm
 t/WeirdName.pm

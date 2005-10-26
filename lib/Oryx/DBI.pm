@@ -6,10 +6,51 @@ use base qw(Oryx Oryx::MetaClass Ima::DBI);
 
 our $DEBUG = 1;
 
+=head1 NAME
+
+Oryx::DBI - DBI Storage interface for Oryx
+
+=head1 SYNOPSIS
+
+ my $storage = Oryx::DBI->new;
+ 
+ $storage->connect([ 'dbi:Pg:dbname=mydb', $usname, $passwd]);
+ $storage->connect([ 'dbi:Pg:dbname=mydb', $usname, $passwd], $schema);
+  
+ $storage->dbh;
+ $storage->db_name;
+ $storage->ping;
+ $storage->schema;
+ $storage->util;
+ $storage->set_util;
+ $storage->deployClass;
+ $storage->deploySchema;
+
+=head1 DESCRIPTION
+
+DBI Storage interface for Oryx. You should not need to instantiate
+this directly, use C<< Oryx->connect() >> instead.
+
+=head1 METHODS
+
+=over
+
+=item new
+
+Simple constructor
+
+=cut
+
 sub new {
     my $class = shift;
     return bless { }, $class;
 }
+
+=item connect( \@conn, [$schema] )
+
+Called by C<< Oryx->connect() >>. You shouldn't need to be doing this.
+
+=cut
 
 sub connect {
     my ($self, $conn, $schema) = @_;
@@ -25,6 +66,12 @@ sub connect {
     return $self;
 }
 
+=item dbh
+
+returns the cached L<DBI> handle object
+
+=cut
+
 sub dbh {
     my $class = shift;
     my $db_name = $class->db_name;
@@ -33,10 +80,23 @@ sub dbh {
     return $class->$db_name();
 }
 
+=item db_name
+
+Shortcut for C<< "db_".$self->schema->name >> used for passing
+a name to L<Ima::DBI>'s C<set_db> method.
+
+=cut
+
 sub db_name {
     my $self = shift;
     return "db_".$self->schema->name;
 }
+
+=item ping
+
+ping the database
+
+=cut
 
 sub ping {
     my $self = shift;
@@ -45,17 +105,37 @@ sub ping {
     $sth->finish;
 }
 
+=item schema
+
+returns the schema if called with no arguments, otherwise
+sets if called with a L<Oryx::Schema> instance.
+
+=cut
+
 sub schema {
     my $self = shift;
     $self->{schema} = shift if @_;
     $self->{schema};
 }
 
+=item util
+
+simple mutator for accessing the oryx::dbi::util::x instance
+
+=cut
+
 sub util {
     my $self = shift;
     $self->{util} = shift if @_;
     $self->{util};
 }
+
+=item set_util
+
+determines which L<Oryx::DBI::Util> class to instantiate
+by looking at the dsn passed to C<connect> and sets it
+
+=cut
 
 sub set_util {
     my ($self, $dsn) = @_;
@@ -67,6 +147,14 @@ sub set_util {
 
     $self->util($utilClass->new);
 }
+
+=item deploySchema( $schema )
+
+Takes a L<Oryx::Schema> instance and deploys all classes seen by that
+schema instance to the database building all tables needed for storing
+your persistent objects.
+
+=cut
 
 sub deploySchema {
     my ($self, $schema) = @_;
@@ -81,6 +169,13 @@ sub deploySchema {
 	$self->deployClass($class);
     }
 }
+
+=item deployClass( $class )
+
+does the work of deploying a given class' tables and link tables to
+the database; called by C<deploySchema>
+
+=cut
 
 sub deployClass {
     my $self = shift;
@@ -159,3 +254,17 @@ sub deployClass {
 }
 
 1;
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::Class>, L<Oryx::DBI::Util>
+
+=head1 AUTHOR
+
+Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
+
+=head1 LICENSE
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

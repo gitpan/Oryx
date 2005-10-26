@@ -4,6 +4,44 @@ use base qw(Oryx::Association);
 
 our $DEBUG = 0;
 
+=head1 NAME
+
+Oryx::Association::Array - Abstract Array association meta-type for Oryx
+
+=head1 DESCRIPTION
+
+Abstract Array association meta-type for Oryx.
+
+The actual array which is kept internally is a list of L<Oryx::Association::Reference>
+instances.
+
+This module implements a private C<tie> interface for Arrays 
+which is shared accross all Array association
+implementation classes (L<Oryx::DBI::Association::Array>, for example)
+as well as an abstract public interface used when subclassing.
+
+=head1 PUBLIC INTERFACE
+
+=over
+
+=item load
+
+loads the data from storage - with DBI style storage, this does a select
+on the link table to build up the array of L<Oryx::Association::Reference>
+instances.
+
+=item fetch
+
+used by FETCH (see L<perltie>)
+
+=item store
+
+used by STORE (see L<perltie>)
+
+=back
+
+=cut
+
 sub new {
     my ($class, $proto) = @_;
     return bless $proto, $class;
@@ -238,3 +276,17 @@ sub _set_updated {
 }
 
 1;
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::Class>, L<Oryx::Association>
+
+=head1 AUTHOR
+
+Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
+
+=head1 LICENSE
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

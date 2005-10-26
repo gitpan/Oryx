@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -115,8 +115,8 @@ Oryx - Meta-Model Driven Object Persistance with Multiple Inheritance
  
 =head1 DESCRIPTION
 
-Oryx is an Object Persistence framework which supports both object-relational
-mapping as well as DMB style databases and as such is not coupled to any
+Oryx is an object persistence framework which supports both object-relational
+mapping as well as DMB style databases and as such is not coupled with any
 particular storage back-end. In other words, you should be able to
 swap out an RDMBS with a DBM style database (and vice versa) without
 changing your persistent classes at all.
@@ -132,6 +132,24 @@ most part, beside a really small amout of meta-data, you would use
 persistent classes in a way that is virtually indistinguishable from
 ordinary perl classes.
 
+Oryx follows the DRY principle - Don't Repeat Yourself - inspired by
+the fantastic Ruby on Rails framework, so what you do say, you say it
+only once when defining your C<$schema> for your class. After that,
+everything is taken care of for you, including automatic table creation
+(if you're using an RDBMS storage). Oryx attempts to name tables
+and link tables created in this way sensibly, so that if you need to
+you should be able to find your way around in the schema with ease.
+
+Because Oryx implements relationships as ordinary Perl Array and Hash
+references, you can create any structures or object relationships
+that you could create in native Perl and have these persist in a database.
+This gives you the flexibility to create trees, cyclic structures, linked
+lists, mixed lists (lists with instances of different classes), etc.
+
+Oryx also supports multiple inheritance by Perl's native C<use base>
+mechanism. Abstract classes, which are simply classes with no attributes,
+are meaningful too, see L<Oryx::Class> for details.
+
 =head1 INTRODUCTION
 
 This documentation applies to classes persisted in L<DBM::Deep> style
@@ -140,8 +158,8 @@ concerned where tables and columns are mentioned - separate files are
 used for L<DBM::Deep> based storage instead of tables (see
 L<Oryx::DBM> for details).
 
-This is still a very early release and only supports L<DBM::Deep>, MySQL
-SQLite and Postgres back-ends at the moment. Having said this, however, Oryx is
+This is still an early release and supports L<DBM::Deep>, MySQL,
+SQLite and Postgres back-ends at the moment. Having said this, Oryx is
 already quite usable. It needs to be thrashed a lot more and support
 for the rest of the popular RDBMS needs to be added. Things will
 change (for the better, one hopes); if you're interested in helping to
@@ -210,10 +228,36 @@ Here's an example of a Schema class :
 
  package CMS::Schema;
  use base qw(Oryx::Schema);
- 
+  
+ # optionaly include your classes
+ use CMS::Page;
+ use CMS::Paragraph;
+ use CMS::Image;
+  
  sub prefix { 'cms' }
  
  1;
+
+=head1 DEPLOYING YOUR SCHEMA
+
+If you've built a large schema and would like to deploy it in
+one shot, or have written an install script, then you can C<use> all the
+classes near the top of your script somewhere, or in your schema class,
+and call C<deploySchema()>. Note, however, that this will only have to be
+done once as you will generally get errors if you try to create a table
+more than once in your RDBMS.
+
+Ordinarily, though you would turn on C<auto_deploy> for your classes, either
+by saying:
+
+ use Oryx(auto_deploy => 1);
+
+or if you prefer, then you can set it on a per class basis:
+
+ use CMS::Page(auto_deploy => 1);
+
+This will avoid the performance hit of checking for the existence of
+a class' table.
 
 =head1 TODO
 
@@ -239,10 +283,6 @@ It should be fairly trivial to add support for the other RDBMS'
 =item B<More documentation>
 
 =back
-
-=head1 BUGS
-
-I'm sure there are some... if I had more tests, I know I'd find 'em
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -274,6 +314,6 @@ Copyright (C) 2005 Richard Hundt <richard NO SPAM AT protea-systems.com>
 
 =head1 LICENSE
 
-Oryx may be used under the same terms as Perl itself.
+Oryx is free software and may be used under the same terms as Perl itself.
 
 =cut

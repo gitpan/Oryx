@@ -17,9 +17,10 @@ sub tableCreate {
     my ($self, $dbm, $table) = @_;
     my $filename = File::Spec->catfile($dbm->datapath, $table);
     $dbm->catalog->put( $table, {
-	file    => $filename,
-	type    => DBM::Deep::TYPE_ARRAY,
-	#locking => 1,
+	file      => $filename,
+	type      => DBM::Deep::TYPE_ARRAY,
+        autoflush => 1,
+	locking => 1,
     });
 }
 

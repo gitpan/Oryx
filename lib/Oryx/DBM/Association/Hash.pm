@@ -3,6 +3,7 @@ package Oryx::DBM::Association::Hash;
 use Oryx::DBM::Association::Reference;
 
 use base qw(Oryx::Association::Hash);
+use Data::Dumper;
 
 our $DEBUG = 0;
 
@@ -17,14 +18,30 @@ sub retrieve {
 sub update {
     my ($self, $proto, $obj) = @_;
     my $accessor = $self->role;
-    my $value = $obj->$accessor || { };
+    my $value = $obj->{$accessor} || { };
 
     $proto->{$accessor} = { };
     @{ $proto->{$accessor} }{ keys %$value } = map { $_->id } values %$value;
+    $DEBUG && $self->_carp("[update]: proto => '.$proto.' value => ".Dumper($proto->{$accessor}));
 
-    tied(%$value)->updated({});
-    tied(%$value)->created({});
-    tied(%$value)->deleted({});
+    if (%{tied(%$value)->deleted}) {
+        while (my ($key, $thing) = each %{tied(%$value)->deleted}) {
+            delete($proto->{$accessor}->{$key});
+        }
+        tied(%$value)->deleted({});
+    }
+    if (%{tied(%$value)->created}) {
+        while (my ($key, $thing) = each %{tied(%$value)->created}) {
+            $proto->{$accessor}->{$key} = defined $thing ? $thing->id : undef;
+        }
+        tied(%$value)->created({});
+    }
+    if (%{tied(%$value)->updated}) {
+        while (my ($key, $thing) = each %{tied(%$value)->updated}) {
+            $proto->{$accessor}->{$key} = defined $thing ? $thing->id : undef;
+        }
+        tied(%$value)->updated({});
+    }
 
     $self->update_backrefs($obj, values %$value);
 
@@ -57,17 +74,26 @@ sub search {
 sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
+
     my @args = ($self, $obj);
-    tie my %value, __PACKAGE__, @args;
-    $obj->{$assoc_name} = \%value;
+
+    $obj->{$assoc_name} = { } unless $obj->{$assoc_name};
+    tie %{$obj->{$assoc_name}}, __PACKAGE__, @args;
+
+    $DEBUG && $self->_carp("constructed $obj, accessor => $assoc_name, returns => ".Dumper($obj->{$assoc_name}));
 }
 
 sub load {
     my ($self, $owner) = @_;
 
-    $DEBUG && $self->_carp("load : OWNER => $owner, ID => ".$owner->id);
+    $DEBUG && $self->_carp("load : OWNER => $owner, ID => ".$owner->id." hash size => ");
 
-    my $Hash = $owner->dbm->get($owner->id)->{$self->role} || { };
+    my $Hash = { };
+    if ($owner->dbm->get( $owner->id )->{$self->role}) {
+        $Hash = $owner->dbm->get( $owner->id )->{$self->role}->export;
+    }
+
+    $DEBUG && $self->_carp('load: hash => '.Dumper($Hash).' owner => '.$owner);
 
     my @args;
     foreach (keys(%$Hash)) {

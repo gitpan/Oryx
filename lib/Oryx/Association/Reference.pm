@@ -18,7 +18,7 @@ sub TIESCALAR {
 
     my $self = bless {
         meta    => $meta,
-        oid     => ref($idOrObject) ? $idOrObject->id : $idOrObject,
+        oid     => ref($idOrObject) ? $idOrObject->{id} : $idOrObject,
         changed => 0,
     }, $class;
 

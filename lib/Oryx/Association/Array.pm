@@ -55,6 +55,7 @@ sub store { $_[0]->_croak('abstract') }
 # TIE MAGIC
 sub TIEARRAY {
     my ($class, $meta, $owner) = @_;
+
     my $self = bless {
 	meta  => $meta,
 	owner => $owner, # the object instance which owns this Value

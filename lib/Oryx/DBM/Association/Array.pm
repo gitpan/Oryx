@@ -1,8 +1,11 @@
 package Oryx::DBM::Association::Array;
 
 use Oryx::DBM::Association::Reference;
+use Data::Dumper;
 
 use base qw(Oryx::Association::Array);
+
+our $DEBUG = 0;
 
 sub create {
     my ($self, $proto) = @_;
@@ -10,22 +13,37 @@ sub create {
 
 sub retrieve {
     my ($self, $proto, $id) = @_;
+    $DEBUG && $self->_carp('[retrieve]: '.Dumper($proto));
 }
 
 sub update {
     my ($self, $proto, $obj) = @_;
     my $accessor = $self->role;
-    my $value = $obj->$accessor || [ ];
+    my $value = $obj->{$accessor} || [ ];
 
-    $proto->{$accessor} = [ map { $_->id } @$value ];
+    $proto->{$accessor} = [ map { $_->{id} } @$value ];
+    $DEBUG && $self->_carp("[update]: proto => '.$proto.' value => ".Dumper($proto->{$accessor}));
 
-    # were not interested in these (for now), so just clear them
-    tied(@$value)->updated({});
-    tied(@$value)->created({});
-    tied(@$value)->deleted({});
+    if (%{tied(@$value)->deleted}) {
+        while (my ($index, $thing) = each %{tied(@$value)->deleted}) {
+            delete($proto->{$accessor}->[$index]); 
+        }
+        tied(@$value)->deleted({});
+    }
+    if (%{tied(@$value)->updated}) {
+        while (my ($index, $thing) = each %{tied(@$value)->updated}) {
+            $proto->{$accessor}->[$index] = defined $thing ? $thing->id : undef; 
+        }
+        tied(@$value)->updated({});
+    }
+    if (%{tied(@$value)->created}) {
+        while (my ($index, $thing) = each %{tied(@$value)->created}) {
+            $proto->{$accessor}->[$index] = defined $thing ? $thing->id : undef; 
+        }
+        tied(@$value)->created({});
+    }
 
     $self->update_backrefs($obj, @$value);
-
 }
 
 sub delete {
@@ -55,15 +73,21 @@ sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
     my @args = ($self, $obj);
-    tie my @value, __PACKAGE__, @args;
-    $obj->{$assoc_name} = \@value;
+
+    $obj->{$assoc_name} = [ ] unless $obj->{$assoc_name};
+    tie @{$obj->{$assoc_name}}, __PACKAGE__, @args;
+ 
+    $DEBUG && $self->_carp("constructed $obj, accessor => $assoc_name, returns => ".Dumper($obj->{$assoc_name}));
 }
 
 sub load {
     my ($self, $owner) = @_;
 
     # take a copy of the DBM array
+    my $assoc_name = $self->role;
     my $Array = [ $owner->{$self->role} ? @{ $owner->{$self->role} } : () ];
+
+    $DEBUG && $self->_carp('load: array => '.Dumper($Array).' owner => '.$owner);
 
     my @args;
     for (my $x = 0; $x < @$Array; $x++) {

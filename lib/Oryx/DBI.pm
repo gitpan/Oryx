@@ -226,7 +226,7 @@ sub deployClass {
 	}
         elsif (not $assoc->is_weak) {
 	    push @types,   $int;
-	    push @columns, $targetClass->table."_id";
+	    push @columns, $assoc->role;
 	}
     }
 

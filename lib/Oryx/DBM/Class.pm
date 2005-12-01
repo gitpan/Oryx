@@ -9,7 +9,7 @@ use Carp;
 
 use base qw(Oryx::MetaClass);
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 __PACKAGE__->mk_classdata('_dbm');
 
@@ -57,7 +57,7 @@ sub retrieve {
     return $object if ($object = $Live_Objects{$key});
 
     $DEBUG && $class->_carp("retrieve : id => $id");
-    my $proto = $class->dbm->get( $id );
+    my $proto = $class->dbm->get( $id )->export;
 
     $_->retrieve($proto, $id) foreach $class->members;
 
@@ -84,20 +84,21 @@ sub update {
     my ($self) = @_;
     return if $self->is_abstract;
 
-    $self->dbm->lock;
+    #$self->dbm->lock;
 
-    my $proto = $self->dbm->get( $self->id );
+    my $proto = $self->dbm->get( $self->id )->export;
+
     $_->update($proto, $self) foreach $self->members;
     $self->dbm->put( $self->id, $proto );
 
-    $self->dbm->unlock;
+    #$self->dbm->unlock;
 
     return $self;
 }
 
 sub delete {
     my ($self) = @_;
-    my $proto = $self->dbm->get($self->id);
+    my $proto = $self->dbm->get( $self->id )->export;
     $_->delete($proto, $self) foreach $self->members;
     $self->dbm->delete($self->id);
     $self->remove_from_cache;
@@ -118,7 +119,7 @@ sub search {
 		$found = 0;
 	    }
 	}
-	push @objs, $class->construct($proto) if $found;
+	push @objs, $class->construct($proto->export) if $found;
     }
 
     return @objs;

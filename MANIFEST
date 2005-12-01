@@ -58,6 +58,7 @@ t/assocarray_pop.t
 t/assocarray_push.t
 t/assocarray_shift.t
 t/assocarray_splice.t
+t/assocarray_tie.t
 t/AssocClass.pm
 t/assochash.t
 t/assocref.t
@@ -70,7 +71,9 @@ t/Child1.pm
 t/Class1.pm
 t/Class2.pm
 t/connect.t
+t/DoubleRef.pm
 t/dsn.yml
+t/dsn.yml.dbm
 t/dsn.yml.pg
 t/HashClass.pm
 t/inheritance.t

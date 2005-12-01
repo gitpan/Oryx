@@ -146,7 +146,7 @@ Initialises the class data (see L<Class::Data::Inheritable>)
 
 sub init {
     my $class = shift;
-    $class->_carp('initializing class data');
+    $DEBUG && $class->_carp('initializing class data');
 
     # set up class data accessors :
     $class->mk_classdata("_meta");
@@ -154,6 +154,7 @@ sub init {
     $class->mk_classdata("associations");
     $class->mk_classdata("methods");
     $class->mk_classdata("parents");
+    $class->mk_classdata("dont_cache");
 
     # DATA section cache
     $class->mk_classdata('dataNode');
@@ -263,6 +264,9 @@ sub import {
 	    $class->storage->deployClass($class);
 	}
     }
+    if ($param{dont_cache}) {
+        $class->dont_cache(1);
+    }
 }
 
 =item meta
@@ -327,7 +331,9 @@ sub construct {
     $object = bless $proto, $class;
     $_->construct($object) foreach $class->members;
 
-    weaken($Live_Objects{$key} = $object);
+    $DEBUG && $class->_carp("constructing $object id => ".$object->id);
+
+    weaken($Live_Objects{$key} = $object) unless $object->dont_cache;
     return $object;
 }
 

@@ -36,6 +36,7 @@ $owner->update;
 $owner->commit;
 $id = $owner->id;
 undef $owner;
+
 $retrieved = HashClass->retrieve($id);
 
 ok($retrieved->assoc2->{foo}->id eq $thing1->id);

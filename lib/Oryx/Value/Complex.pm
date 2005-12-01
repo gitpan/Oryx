@@ -13,6 +13,7 @@ sub inflate {
 
 sub deflate {
     my ($self, $value) = @_;
+    warn('DEFLATING => '.YAML::Dump($value));
     return YAML::Dump($value);
 }
 

@@ -8,7 +8,12 @@ sub create {
 
 sub retrieve {
     my ($self, $query, $id) = @_;
-    push @{$query->{fields}}, $self->class->table."_id";
+    push @{$query->{fields}}, $self->role
+}
+
+sub search {
+    my ($self, $query) = @_;
+    push @{$query->{fields}}, $self->role
 }
 
 sub update {
@@ -18,7 +23,7 @@ sub update {
 	my $sql = SQL::Abstract->new;
 
 	my $s_table = $self->source->table;
-	my $f_key = $self->class->table.'_id';
+	my $f_key = $self->role;
 	my %fieldvals = ();
 	my %where = (id => $obj->id);
 
@@ -49,7 +54,7 @@ sub search {
 sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
-    my @args = ($self, $obj->{$self->class->table.'_id'});
+    my @args = ($self, $obj->{$self->role});
     tie $obj->{$assoc_name}, __PACKAGE__, @args;
 }
 

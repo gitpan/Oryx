@@ -57,7 +57,9 @@ sub retrieve {
     return $object if ($object = $Live_Objects{$key});
 
     $DEBUG && $class->_carp("retrieve : id => $id");
-    my $proto = $class->dbm->get( $id )->export;
+    my $proto = $class->dbm->get( $id );
+    return undef unless $proto;
+    $proto = $proto->export;
 
     $_->retrieve($proto, $id) foreach $class->members;
 
@@ -86,7 +88,9 @@ sub update {
 
     #$self->dbm->lock;
 
-    my $proto = $self->dbm->get( $self->id )->export;
+    my $proto = $self->dbm->get( $self->id );
+    return undef unless $proto;
+    $proto = $proto->export;
 
     $_->update($proto, $self) foreach $self->members;
     $self->dbm->put( $self->id, $proto );
@@ -109,6 +113,7 @@ sub search {
 
     my ($found, @objs);
     SEARCH: foreach my $proto (@{ $class->dbm }) {
+        next unless defined $proto->{id};
 	$found = 1;
 	foreach my $field (keys %$param) {
 	    next SEARCH if ref $proto->{$field};

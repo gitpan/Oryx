@@ -17,7 +17,6 @@ build_requires(qw(
 ));
 
 requires(qw(
-    perl 5.6.1
     DBI
     YAML
     Class::Data::Inheritable

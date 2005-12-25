@@ -47,10 +47,6 @@ sub delete {
     $self->update(@_);
 }
 
-sub search {
-
-}
-
 sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;

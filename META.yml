@@ -1,5 +1,5 @@
 name: Oryx
-version: 0.17
+version: 0.18
 abstract: Object Persistence with Multiple Inheritance
 author: Richard Hundt <richard NO SPAM AT protea-systems.com>
 license: artistic
@@ -10,7 +10,6 @@ build_requires:
   Test::More: Data::Types
   File::Spec: Module::Pluggable
 requires:
-  perl: 5.6.1
   DBI: YAML
   Class::Data::Inheritable: Class::Date
   SQL::Abstract: Ima::DBI

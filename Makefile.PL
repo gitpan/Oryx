@@ -5,7 +5,7 @@ author('Richard Hundt <richard NO SPAM AT protea-systems.com>');
 abstract('Object Persistence with Multiple Inheritance');
 license('artistic');
 version_from('lib/Oryx.pm');
-build_requires(qw(
+build_requires($_) for (qw[
     YAML
     Class::Data::Inheritable
     Class::Date
@@ -14,9 +14,9 @@ build_requires(qw(
     Data::Types
     File::Spec
     Module::Pluggable
-));
+]);
 
-requires(qw(
+requires($_) for (qw[
     DBI
     YAML
     Class::Data::Inheritable
@@ -27,7 +27,7 @@ requires(qw(
     Data::Types
     File::Spec
     Module::Pluggable
-));
+]);
 
 check_nmake();
 &WriteAll();

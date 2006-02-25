@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Scalar::Util qw(weaken);
 
-use base qw(Class::Data::Inheritable);
+use base qw(Class::Data::Inheritable Class::Observable);
 
 =head1 NAME
 
@@ -30,7 +30,7 @@ Oryx::Class - abstract base class for Oryx classes
  $page->update;
  $page->delete;
  
- @pages = CMS::Page->search({author => 'Richard Hun%'});
+ @pages = CMS::Page->search({author => 'Richard Hun%'}, \@order, $limit, $offset);
  
  #===========================================================================
  # commit your changes
@@ -66,6 +66,14 @@ Oryx::Class - abstract base class for Oryx classes
  $page->images->{mug_shot} = $my_ugly_mug;
  @keys   = keys   %{$page->images};
  @values = values %{$page->images};
+ 
+ #===========================================================================
+ # support for Class::Observable
+ Page->add_observer(sub {
+     my ($item, $action) = @_;
+     #...
+ }); 
+ $page->add_observer(...); # instance
 
 =head1 DESCRIPTION
 
@@ -95,15 +103,45 @@ updates storage to persist and reflect changes in the object
 
 deletes the object from storage
 
-=item B<search( \%param )>
+=item B<search( \%param, [ \@order, $limit, $offset ] )>
 
 searches for objects with fields matching C<\%param>. SQL style
-C<%> wildcards are supported.
+C<%> wildcards are supported. C<\@order>, C<$limit> and C<$offset> are
+optional. C<\@order> is a list of columns which are used to sort the
+results, C<$limit> is an integer which is used to limit the number of
+results, and C<$offset> is used to exclude the first results up to
+that number. These last two arguments are useful for paging through
+search results.
 
 =item B<commit>
 
 commits the transaction if your database supports it and AutoCommit
 is disabled, then you must do this.
+
+=back
+
+=head2 Observers
+
+Oryx::Class objects now unherit from L<Class::Observable> thereby
+implementing a publish/subscribe system similar to triggers.
+
+The signals are named according to the 6 interface methods prefixed with
+I<before_*> and I<after_*>, so the following signals are sent:
+
+=over 4
+
+=item before_create
+=item after_create
+=item before_retrieve
+=item after_retrieve
+=item before_update
+=item after_update
+=item before_delete
+=item after_delete
+=item before_search
+=item after_search
+=item before_construct
+=item after_construct
 
 =back
 
@@ -113,13 +151,14 @@ use vars qw($XML_DOM_Lite_Is_Available);
 
 BEGIN {
     __PACKAGE__->mk_classdata("auto_deploy");
+    __PACKAGE__->mk_classdata("dont_cache");
 
     our $XML_DOM_Lite_Is_Available = 1;
     eval "use XML::DOM::Lite qw(Parser Node :constants);";
     $XML_DOM_Lite_Is_Available = 0 if $@;
 }
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 our $PARSER;
 
 sub parser {
@@ -154,7 +193,6 @@ sub init {
     $class->mk_classdata("associations");
     $class->mk_classdata("methods");
     $class->mk_classdata("parents");
-    $class->mk_classdata("dont_cache");
 
     # DATA section cache
     $class->mk_classdata('dataNode');
@@ -259,14 +297,12 @@ sub import {
     }
 
     if ($class->auto_deploy or $param{auto_deploy}) {
-	unless ($class->storage->util->tableExists(
+	unless ($class->storage->util->table_exists(
         $class->dbh, $class->table)) {
-	    $class->storage->deployClass($class);
+	    $class->storage->deploy_class($class);
 	}
     }
-    if ($param{dont_cache}) {
-        $class->dont_cache(1);
-    }
+    if ($param{dont_cache}) { $class->dont_cache(1) }
 }
 
 =item meta
@@ -328,9 +364,11 @@ sub construct {
     my $key = $class->_mk_cache_key($proto->{id});
     return $object if ($object = $Live_Objects{$key});
 
+    $class->notify_observers('before_construct', { proto => $proto });
     $object = bless $proto, $class;
     $_->construct($object) foreach $class->members;
 
+    $class->notify_observers('after_construct', { object => $object });
     $DEBUG && $class->_carp("constructing $object id => ".$object->id);
 
     weaken($Live_Objects{$key} = $object) unless $object->dont_cache;

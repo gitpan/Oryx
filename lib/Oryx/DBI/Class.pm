@@ -15,15 +15,16 @@ use base qw(Oryx::MetaClass);
 # MetaClass class.
 
 # make some noise
-our $DEBUG = 2;
+our $DEBUG = 0;
 
 sub dbh { $_[0]->storage->dbh }
 
 sub create {
     my ($class, $param) = @_;
     my %query = ( table => $class->table );
-    $param->{id} = $class->nextId();
     $param->{_isa} ||= $class;
+
+    $class->notify_observers('before_create', { param => $param, query => \%query });
 
     $_->create(\%query, $param) foreach $class->members;
 
@@ -38,6 +39,12 @@ sub create {
     my $sth = $class->dbh->prepare_cached($stmnt);
     $sth->execute(@bind);
     $sth->finish;
+
+    $param->{id} = $class->lastId();
+    $proto->{id} = $class->lastId();
+
+    $class->notify_observers('after_create', { param => $param, proto => $proto });
+
     return $class->construct($proto);
 }
 
@@ -60,6 +67,7 @@ sub retrieve {
 	push @{$query{fields}}, '_isa';
     }
     $DEBUG && $class->_carp("retrieve : id => $id");
+    $class->notify_observers('before_retrieve', { query => \%query, id => $id });
     $_->retrieve(\%query, $id) foreach $class->members;
 
     my $sql = SQL::Abstract->new;
@@ -69,7 +77,7 @@ sub retrieve {
     my $sth = $class->dbh->prepare_cached($stmnt);
 
     eval { $sth->execute(@bind) };
-    $self->_croak("execute failed [$stmnt], bind => "
+    $class->_croak("execute failed [$stmnt], bind => "
         .join(", ", @bind)." $@") if $@;
 
     my $values = $sth->fetch;
@@ -90,6 +98,7 @@ sub retrieve {
 	    $class->_croak($@) if $@;
 	    return $proto->{_isa}->retrieve($proto->{id});
 	}
+        $class->notify_observers('after_retrieve', { proto => $proto });
 	return $class->construct($proto);
     } else {
 	return undef;
@@ -104,6 +113,7 @@ sub update {
 	fieldvals => { },
         where => { id => $self->id },
     );
+    $self->notify_observers('before_update', { query => \%query });
     $_->update(\%query, $self) foreach $self->members;
 
     my $sql = SQL::Abstract->new;
@@ -118,6 +128,7 @@ sub update {
 
     $sth->finish;
 
+    $self->notify_observers('after_update');
     return $self;
 }
 
@@ -127,6 +138,7 @@ sub delete {
 	table => $self->table,
         where => { id => $self->id },
     );
+    $self->notify_observers('before_delete', { query => \%query });
     $_->delete(\%query, $self) foreach $self->members;
 
     my $sql = SQL::Abstract->new;
@@ -137,18 +149,29 @@ sub delete {
     $sth->finish;
 
     $self->remove_from_cache;
+    $self->notify_observers('after_delete');
+    return $self;
 }
 
 sub search {
-    my ($class, $param) = @_;
+    my ($class, $param, $order, $limit, $offset) = @_;
     my %query = (
 	table  => $class->table,
 	fields => [ 'id' ],
         where  => $param,
-        order  => [ ],
+        order  => $order || [ ],
     );
+    $limit = -1 unless defined $limit;
 
     push @{$query{fields}}, '_isa' if $class->is_abstract;
+
+    $class->notify_observers('before_search', {
+            query => \%query,
+            param => $param,
+            order => $order,
+            limit => $limit,
+        }
+    );
 
     $_->search(\%query) foreach $class->members;
 
@@ -160,11 +183,24 @@ sub search {
     $sth->execute(@bind);
 
     my (@objs, @row);
-    while (@row = $sth->fetch) {
+    if (defined $offset) {
+        @row = $sth->fetch while ($offset-- > 0);
+    }
+    while ($limit-- and (@row = $sth->fetch)) {
 	my $proto = $class->row2proto($query{fields}, \@row);
 	push @objs, $class->construct($proto);
     }
     $sth->finish;
+
+    $class->notify_observers('after_search', {
+            query => \%query,
+            param => $param,
+            order => $order,
+            limit => $limit,
+            objects => \@objs
+        }
+    );
+
     return @objs;
 }
 
@@ -175,10 +211,41 @@ sub row2proto {
     return $proto;
 }
 
-# next id in sequence
-sub nextId {
+sub lastId {
     my $class = shift;
-    $class->storage->util->nextval($class->dbh, $class->table);
+    $class->storage->util->lastval($class->dbh, $class->table);
 }
 
+
 1;
+__END__
+
+=head1 NAME
+
+Oryx::DBI::Class - DBI metaclass implementation
+
+=head1 SYNOPSIS
+
+See L<Oryx::Class>.
+
+=head1 DESCRIPTION
+
+This is the DBI implementation of L<Oryx::Class>. This does the majority of the work for an L<Oryx::Class> subclass stored in L<Oryx::DBI> storage.
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::Class>, L<Oryx::DBI>
+
+=head1 AUTHORS
+
+Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
+
+Andrew Sterling Hanenkamp E<lt>hanenkamp@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005 Richard Hundt.
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

@@ -1,5 +1,7 @@
 package Oryx::Value;
 
+use base qw(Class::Data::Inheritable);
+
 use Module::Pluggable(
     search_path => 'Oryx::Value',
     sub_name    => 'types',
@@ -47,8 +49,7 @@ The C<tie> related methods: C<TIESCALAR>, C<STORE> and C<FETCH>, as well as
 C<VALUE> should not be overridden when subclassing - they are documented here
 for the sake of completeness.
 
-C<inflate>, C<deflate> and the C<check_thing> methods are usually overloaded
-when subclassing.
+The C<inflate>, C<deflate>, C<check_thing>, and C<primitive> methods are usually overloaded when subclassing.
 
 =head1 METHODS
 
@@ -256,6 +257,34 @@ with which this Value instance is associated.
 
 sub owner { $_[0]->{owner} }
 
+=item primitive
+
+Returns a string representing the underlying primitive type. This is used by the storage driver to determine how to pick the data type to use to store the value. The possible values include:
+
+=over
+
+=item Integer
+
+=item String
+
+=item Text
+
+=item Binary
+
+=item Float
+
+=item Boolean
+
+=item DateTime
+
+=back
+
+There is an additional internal type called "Oid", but it should not be used.
+
+=cut
+
+sub primitive { $_[0]->_croak('abstract') }
+
 sub _croak {
     my ($self, $msg) = @_;
     $self->{owner}->_croak("<".$self->{meta}->name."> $msg");
@@ -267,8 +296,6 @@ sub _carp {
 }
 
 1;
-
-=pod
 
 =back
 

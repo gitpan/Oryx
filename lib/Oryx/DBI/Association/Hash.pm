@@ -159,3 +159,58 @@ sub link_fields {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::DBI::Association::Hash - DBI implementation of hash associations
+
+=head1 SYNOPSIS
+
+See L<Oryx::Association::Hash>.
+
+=head1 DESCRIPTION
+
+This provdes an implementation of hash associations with connections made via L<Oryx::DBI>.
+
+=head1 GUTS
+
+This is just a quick run-down of implementation details as of this writing to help introduce users to the database internals. These details may change with future releases and might have changed since this documentation was written.
+
+A hash association is stored into the database as a separate table named for the tables linked and the role of the link:
+
+  <source>_<role>_<target>
+
+within the table there will be exactly three fields:
+
+=over
+
+=item source_id
+
+This will be the ID field for the source table in the link.
+
+=item target_id
+
+This will be the ID field for the target table in the link.
+
+=item _key
+
+This is the key used to identify the target from the source. This will be unique for the tuple (source_id, _key).
+
+=back
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::DBI>, L<Oryx::Association::Hash>
+
+=head1 AUTHOR
+
+Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005 Richard Hundt.
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

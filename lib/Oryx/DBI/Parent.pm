@@ -92,3 +92,38 @@ sub construct {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::DBI::Parent - DBI implementation of parent relationships
+
+=head1 SYNOPSIS
+
+See L<Oryx::Parent>.
+
+=head1 DESCRIPTION
+
+This is the DBI implementation of Oryx subclassing relationships. If one class extends another, then the implementation in this class manages the loading of the parent information into the child.
+
+=head1 GUTS
+
+This is just a quick run-down of implementation details as of this writing to help introduce users to the database internals. These details may change with future releases and might have changed since this documentation was written.
+
+Each class that subclasses one or more Oryx class will have an additional link table associated with it to identify it's parent records. This class then uses that information to load the class data for each parent into a subclass record upon construction.
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::Parent>, L<Oryx::DBI>
+
+=head1 AUTHOR
+
+Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005 Richard Hundt.
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

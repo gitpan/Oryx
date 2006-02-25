@@ -55,3 +55,38 @@ sub construct {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::DBI::Association::Reference - DBI implementation of reference associations
+
+=head1 SYNOPSIS
+
+See L<Oryx::Association::Reference>.
+
+=head1 DESCRIPTION
+
+This is an implementation of simple reference associations for connections made via the L<Oryx::DBI> class.
+
+=head1 GUTS
+
+This is just a quick run-down of implementation details as of this writing to help introduce users to the database internals. These details may change with future releases and might have changed since this documentation was written.
+
+References are implemented as additional fields in the source table linking to the foreign table. The field will have the same name as the foreign table.
+
+=head1 SEE ALSO
+
+L<Oryx>
+
+=head1 AUTHOR
+
+Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005 Richard Hundt.
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

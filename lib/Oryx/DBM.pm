@@ -9,7 +9,7 @@ use base qw(Oryx Oryx::MetaClass);
 
 __PACKAGE__->mk_classdata("datapath");
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 =head1 NAME
 
@@ -27,8 +27,8 @@ Oryx::DBM - DBM Storage interface for Oryx
  $storage->schema;
  $storage->util;
  $storage->set_util;
- $storage->deployClass;
- $storage->deploySchema;
+ $storage->deploy_class;
+ $storage->deploy_schema;
 
 =head1 DESCRIPTION
 
@@ -146,7 +146,7 @@ sub set_util {
     $self->util( Oryx::DBM::Util->new );
 }
 
-=item deploySchema( $schema )
+=item deploy_schema( $schema )
 
 Takes a L<Oryx::Schema> instance and deploys all classes seen by that
 schema instance to the database creating all L<DBM::Deep> db files
@@ -154,31 +154,31 @@ needed for storing your persistent objects.
 
 =cut
 
-sub deploySchema {
+sub deploy_schema {
     my ($self, $schema) = @_;
     $schema = $self->schema unless defined $schema;
 
     $DEBUG && $self->_carp(
-	"deploySchema $schema : classes => ".join(",\n", $schema->classes)
+	"deploy_schema $schema : classes => ".join(",\n", $schema->classes)
     );
     unless (-d $self->datapath) {
 	mkdir $self->datapath;
     }
     foreach my $class ($schema->classes) {
-	$self->deployClass($class);
+	$self->deploy_class($class);
     }
 }
 
-=item deployClass( $class )
+=item deploy_class( $class )
 
-does the work of deploying a given class; called by C<deploySchema>
+does the work of deploying a given class; called by C<deploy_schema>
 
 =cut
 
-sub deployClass {
+sub deploy_class {
     my ($self, $class) = @_;
     $DEBUG && $self->_carp("DEPLOYING $class");
-    $self->util->tableCreate($self, $class->table);
+    $self->util->table_create($self, $class->table);
 }
 
 1;

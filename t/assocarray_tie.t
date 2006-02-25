@@ -70,10 +70,10 @@ ok($popped3->id eq $thing1->id);
 ### TEAR DOWN
 
 my $dbh = $storage->dbh;
-$storage->util->tableDrop($dbh, 'assocclass');
-$storage->util->tableDrop($dbh, 'assocclass_assoc1_class1');
-$storage->util->tableDrop($dbh, 'class1');
-$storage->util->sequenceDrop($dbh, 'assocclass');
-$storage->util->sequenceDrop($dbh, 'class1');
+$storage->util->table_drop($dbh, 'assocclass');
+$storage->util->table_drop($dbh, 'assocclass_assoc1_class1');
+$storage->util->table_drop($dbh, 'class1');
+# $storage->util->sequence_drop($dbh, 'assocclass');
+# $storage->util->sequence_drop($dbh, 'class1');
 $dbh->commit;
 

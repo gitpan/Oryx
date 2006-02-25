@@ -14,35 +14,17 @@ use Class1 (auto_deploy => 1);
 ### SET UP
 
 ok($storage->ping);
-
 my $id;
 my $owner;
 my $retrieved;
 
 
-#####################################################################
-### ARRAY PUSH
-
-my $thing1 = Class1->create({attrib1 => 'foo'});
-my $thing2 = Class1->create({attrib1 => 'bar'});
-my $thing3 = Class1->create({attrib1 => 'baz'});
-
-$owner = AssocClass->create({
-    attrib1 => 'this class has an Array Assocition with TestClass'
+Class1->add_observer(sub {
+    my ($item, $action) = @_;
+    warn "ITEM => $item, ACTION => $action";
 });
-push @{$owner->assoc1}, $thing1;
-push @{$owner->assoc1}, $thing2;
-push @{$owner->assoc1}, $thing3;
 
-$owner->update;
-$owner->commit;
-$id = $owner->id;
-undef $owner;
-$retrieved = AssocClass->retrieve($id);
-
-ok($retrieved->assoc1->[0]->attrib1 eq 'foo');
-ok($retrieved->assoc1->[1]->attrib1 eq 'bar');
-ok($retrieved->assoc1->[2]->attrib1 eq 'baz');
+Class1->create({attrib1 => 'foo'});
 
 
 #####################################################################

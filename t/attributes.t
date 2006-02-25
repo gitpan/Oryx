@@ -42,7 +42,7 @@ is($retrieved->attr_datetime, '1976-04-15 00:00:00');
 is_deeply($retrieved->attr_complex, { foo => 'bar', baz => ['one', 'II', 3]});
 
 my $dbh = $storage->dbh;
-$storage->util->tableDrop($dbh, 'attrsclass');
-$storage->util->sequenceDrop($dbh, 'attrsclass');
+$storage->util->table_drop($dbh, 'attrsclass');
+# $storage->util->sequence_drop($dbh, 'attrsclass');
 $dbh->commit;
 

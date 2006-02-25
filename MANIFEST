@@ -23,6 +23,7 @@ lib/Oryx/DBI/Class.pm
 lib/Oryx/DBI/Method.pm
 lib/Oryx/DBI/Parent.pm
 lib/Oryx/DBI/Util.pm
+lib/Oryx/DBI/Util/Generic.pm
 lib/Oryx/DBI/Util/mysql.pm
 lib/Oryx/DBI/Util/Pg.pm
 lib/Oryx/DBI/Util/SQLite.pm
@@ -74,9 +75,13 @@ t/connect.t
 t/DoubleRef.pm
 t/dsn.yml
 t/dsn.yml.dbm
+t/dsn.yml.mysql
 t/dsn.yml.pg
+t/dsn.yml.sqlite
 t/HashClass.pm
 t/inheritance.t
+t/observers.t
 t/Parent1.pm
 t/Parent2.pm
+t/search.t
 t/WeirdName.pm

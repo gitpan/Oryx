@@ -31,7 +31,7 @@ sub new {
 	meta  => $meta,
     }, $class;
 
-    eval 'use '.$self->typeClass;
+    eval 'use '.$self->type_class;
     $self->_croak($@) if $@;
 
     no strict 'refs';
@@ -81,10 +81,10 @@ sub construct {
     my ($self, $obj) = @_;
 
     my $attr_name = $self->name;
-    $obj->{$attr_name} = $self->typeClass->inflate($obj->{$attr_name});
+    $obj->{$attr_name} = $self->inflate($obj->{$attr_name});
 
     my @args = ($self, $obj);
-    tie $obj->{$attr_name}, $self->typeClass, @args;
+    tie $obj->{$attr_name}, $self->type_class, @args;
 
     return $obj;
 }
@@ -145,26 +145,48 @@ sub required {
 
 =item primitive
 
-returns a string: 'SCALAR', 'ARRAY', or 'HASH' which is defined
-in the implementing L<Oryx::Value> meta-type.
+returns a list the first argument of which is one of: 'Integer',
+'String', 'Boolean', 'Float', 'Text', 'Binary' or 'DateTime'
+which are mapped to SQL column types by the L<Oryx::DBI::Util>
+classes. The second argument is an optional size constraint.
 
 =cut
 
 sub primitive {
     my $self = shift;
-    return $self->typeClass->primitive;
+    return $self->type_class->primitive;
 }
 
-=item typeClass
+=item type_class
 
 returns the canonical package name of the implementing
 L<Oryx::Value> meta-type for this attribute.
 
 =cut
 
-sub typeClass {
+sub type_class {
     my $self = shift;
     return 'Oryx::Value::'.$self->type;
+}
+
+sub deflate {
+    my $self = shift;
+    my $value = shift;
+    if (ref $self->meta->{deflate} eq 'CODE') {
+        return $self->meta->{deflate}->($value);
+    } else {
+        return $self->type_class->deflate($value);
+    }
+}
+
+sub inflate {
+    my $self  = shift;
+    my $value = shift;
+    if (ref $self->meta->{inflate} eq 'CODE') {
+        return $self->meta->{inflate}->($value);
+    } else {
+        return $self->type_class->inflate($value);
+    }
 }
 
 sub _mk_accessor {

@@ -54,13 +54,13 @@ Oryx::Parent - multiple inheritance meta-type for Oryx
  print $retrieved->colour;        # prints 'orange'
  
  my $food_instance = $retrieved->PARENT('Food');
- print $food_instance->energy     # prints 543.21
+ print $food_instance->energy;    # prints 543.21
  
  $food_instance->energy(42.00);
  $food_instance->update;
  
  my $changed_orange = Orange->retrieve($id);
- print $changed_orange->energy    # prints 42.00 (parent instance updated)
+ print $changed_orange->energy;   # prints 42.00 (parent instance updated)
 
 =head1 DESCRIPTION
 

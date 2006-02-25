@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.19';
+our $VERSION = '0.21';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -14,6 +14,9 @@ sub import {
     my %param = @_;
     if (defined $param{auto_deploy}) {
 	Oryx::Class->auto_deploy($param{auto_deploy});
+    }
+    if (defined $param{dont_cache}) {
+        Oryx::Class->dont_cache($param{dont_cache});
     }
 }
 
@@ -149,6 +152,8 @@ lists, mixed lists (lists with instances of different classes), etc.
 Oryx also supports multiple inheritance by Perl's native C<use base>
 mechanism. Abstract classes, which are simply classes with no attributes,
 are meaningful too, see L<Oryx::Class> for details.
+
+L<Oryx::Class> also now inherits from L<Class::Observable>, see relevant docs.
 
 =head1 INTRODUCTION
 
@@ -292,8 +297,7 @@ Special thanks to:
 
 =item I<Sam Vilain>
 
-For educating me about meta-models, feedback and for hosting the
-subversion repository.
+For educating me about meta-models and feedback.
 
 =item I<Andrew Sterling Hanenkamp>
 

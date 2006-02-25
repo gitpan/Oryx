@@ -39,3 +39,32 @@ sub construct {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Oryx::DBM::Parent - DBM implementation of parent relationships
+
+=head1 SYNOPSIS
+
+See L<Oryx::Parent>.
+
+=head1 DESCRIPTION
+
+This class contains the implementation used whenever one Oryx metaclass subclasses another over an L<Oryx::DBM> storage connection.
+
+=head1 SEE ALSO
+
+L<Oryx>, L<Oryx::DBM>, L<Oryx::Parent>
+
+=head1 AUTHOR
+
+Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005 Richard Hundt.
+
+This library is free software and may be used under the same terms as Perl itself.
+
+=cut

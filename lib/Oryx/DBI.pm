@@ -23,8 +23,8 @@ Oryx::DBI - DBI Storage interface for Oryx
  $storage->schema;
  $storage->util;
  $storage->set_util;
- $storage->deployClass;
- $storage->deploySchema;
+ $storage->deploy_class;
+ $storage->deploy_schema;
 
 =head1 DESCRIPTION
 
@@ -143,12 +143,21 @@ sub set_util {
     my $utilClass = __PACKAGE__."\::Util\::$1";
 
     eval "use $utilClass";
-    $self->_croak($@) if $@;
+    $self->_carp($@) if $@;
+
+    # Can't construct the utilClass: fallback to Generic and pray it works
+    unless (UNIVERSAL::can($utilClass, 'new')) {
+        $utilClass = __PACKAGE__."\::Util::Generic";
+
+        eval "use $utilClass";
+        $self->_croak($@) if $@;
+    }
 
     $self->util($utilClass->new);
 }
 
-=item deploySchema( $schema )
+
+=item deploy_schema( $schema )
 
 Takes a L<Oryx::Schema> instance and deploys all classes seen by that
 schema instance to the database building all tables needed for storing
@@ -156,28 +165,28 @@ your persistent objects.
 
 =cut
 
-sub deploySchema {
+sub deploy_schema {
     my ($self, $schema) = @_;
     $schema = $self->schema unless defined $schema;
 
     $DEBUG && $self->_carp(
-	"deploySchema $schema : classes => "
+	"deploy_schema $schema : classes => "
         .join(",\n", $schema->classes)
     );
 
     foreach my $class ($schema->classes) {
-	$self->deployClass($class);
+	$self->deploy_class($class);
     }
 }
 
-=item deployClass( $class )
+=item deploy_class( $class )
 
 does the work of deploying a given class' tables and link tables to
-the database; called by C<deploySchema>
+the database; called by C<deploy_schema>
 
 =cut
 
-sub deployClass {
+sub deploy_class {
     my $self = shift;
     my $class = shift;
     $DEBUG && $self->_carp("DEPLOYING $class");
@@ -199,12 +208,12 @@ sub deployClass {
 
     foreach my $attrib (values %{$class->attributes}) {
 	push @columns, $attrib->name;
-	push @types, $attrib->as_sql;
+	push @types, $self->util->type2sql($attrib->primitive, $attrib->size);
     }
 
     foreach my $assoc (values %{$class->associations}) {
-	my $targetClass = $assoc->class;
-	eval "use $targetClass"; $self->_croak($@) if $@;
+	my $target_class = $assoc->class;
+	eval "use $target_class"; $self->_croak($@) if $@;
 	if ($assoc->type ne 'Reference') {
 	    # create a link table
 	    my $lt_name = $assoc->link_table;
@@ -220,7 +229,7 @@ sub deployClass {
 		push @lt_types, $self->util->type2sql('String');
 	    }
 
-	    $self->util->tableCreate(
+	    $self->util->table_create(
                 $dbh, $lt_name, \@lt_cols, \@lt_types
             );
 	}
@@ -242,13 +251,13 @@ sub deployClass {
 	    .join("|", @lt_types));
 
 	# create the link table
-	$self->util->tableCreate(
+	$self->util->table_create(
             $dbh, $lt_name, \@lt_cols, \@lt_types
         );
     }
 
-    $self->util->tableCreate($dbh, $table, \@columns, \@types);
-    $self->util->sequenceCreate($dbh, $table);
+    $self->util->table_create($dbh, $table, \@columns, \@types);
+#    $self->util->sequence_create($dbh, $table);
 
     $dbh->commit;
 }

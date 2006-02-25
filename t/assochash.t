@@ -47,10 +47,10 @@ ok($retrieved->assoc2->{baz}->id eq $thing3->id);
 ### TEAR DOWN
 
 my $dbh = $storage->dbh;
-$storage->util->tableDrop($dbh, 'class1');
-$storage->util->tableDrop($dbh, 'hashclass');
-$storage->util->tableDrop($dbh, 'hashclass_assoc2_class1');
-$storage->util->sequenceDrop($dbh, 'class1');
-$storage->util->sequenceDrop($dbh, 'hashclass');
+$storage->util->table_drop($dbh, 'class1');
+$storage->util->table_drop($dbh, 'hashclass');
+$storage->util->table_drop($dbh, 'hashclass_assoc2_class1');
+# $storage->util->sequence_drop($dbh, 'class1');
+# $storage->util->sequence_drop($dbh, 'hashclass');
 $dbh->commit;
 

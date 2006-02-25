@@ -1,6 +1,7 @@
 package AttrsClass;
 
 use base qw(Oryx::Class);
+use Data::Dumper;
 
 our $schema = {
     attributes => [{
@@ -9,6 +10,16 @@ our $schema = {
     },{
         name => 'attr_complex',
         type => 'Complex',
+        inflate => sub {
+            my $value = shift;
+            warn 'inflating => '.$value;
+            return eval $value;
+        },
+        deflate => sub {
+            my $value = shift;
+            warn 'deflating => '.$value;
+            return Dumper($value);
+        }
     },{
         name => 'attr_integer',
         type => 'Integer',

@@ -7,6 +7,7 @@ license('artistic');
 version_from('lib/Oryx.pm');
 build_requires($_) for (qw[
     YAML
+    Class::Observable
     Class::Data::Inheritable
     Class::Date
     DBM::Deep
@@ -19,6 +20,7 @@ build_requires($_) for (qw[
 requires($_) for (qw[
     DBI
     YAML
+    Class::Observable
     Class::Data::Inheritable
     Class::Date
     SQL::Abstract

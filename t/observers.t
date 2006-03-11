@@ -21,7 +21,8 @@ my $retrieved;
 
 Class1->add_observer(sub {
     my ($item, $action) = @_;
-    warn "ITEM => $item, ACTION => $action";
+    ok($item eq 'Class1');
+    ok($action =~ /^(before)|(after)_/); 
 });
 
 Class1->create({attrib1 => 'foo'});

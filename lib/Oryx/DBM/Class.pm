@@ -9,7 +9,7 @@ use Carp;
 
 use base qw(Oryx::MetaClass);
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 __PACKAGE__->mk_classdata('_dbm');
 
@@ -35,6 +35,7 @@ sub create {
 
     $class->notify_observers('before_create', { param => $param });
     $_->create($param) foreach $class->members;
+    $_->create($param) foreach @{$class->parents};
 
     # grab out the attributes that this class knows about
     my @keys = ('id', keys %{$class->attributes});
@@ -66,6 +67,7 @@ sub retrieve {
 
     $class->notify_observers('before_retrieve', { proto => $proto, id => $id });
     $_->retrieve($proto, $id) foreach $class->members;
+    $_->retrieve($proto, $id) foreach @{$class->parents};
 
     if ($proto) {
 	if ($class->is_abstract and $proto->{_isa} ne $class) {
@@ -99,6 +101,7 @@ sub update {
 
     $self->notify_observers('before_update', { proto => $proto });
     $_->update($proto, $self) foreach $self->members;
+    $_->update($proto, $self) foreach @{$self->parents};
     $self->dbm->put( $self->id, $proto );
 
     $self->notify_observers('after_update');
@@ -112,6 +115,7 @@ sub delete {
     my $proto = $self->dbm->get( $self->id )->export;
     $self->notify_observers('before_delete', { proto => $proto });
     $_->delete($proto, $self) foreach $self->members;
+    $_->delete($proto, $self) foreach @{$self->parents};
     $self->dbm->delete($self->id);
     $self->remove_from_cache;
     $self->notify_observers('after_delete');

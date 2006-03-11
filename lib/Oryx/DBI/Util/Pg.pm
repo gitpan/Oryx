@@ -13,6 +13,11 @@ our %SQL_TYPES = (
     'DateTime'  => 'timestamp',
 );
 
+sub lastval {
+    my ($self, $dbh, $table) = @_;
+    return $dbh->last_insert_id('%', 'public', $table, 'id');
+}
+
 1;
 __END__
 

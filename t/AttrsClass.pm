@@ -12,12 +12,10 @@ our $schema = {
         type => 'Complex',
         inflate => sub {
             my $value = shift;
-            warn 'inflating => '.$value;
             return eval $value;
         },
         deflate => sub {
             my $value = shift;
-            warn 'deflating => '.$value;
             return Dumper($value);
         }
     },{

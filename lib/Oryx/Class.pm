@@ -158,7 +158,7 @@ BEGIN {
     $XML_DOM_Lite_Is_Available = 0 if $@;
 }
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 our $PARSER;
 
 sub parser {
@@ -367,6 +367,7 @@ sub construct {
     $class->notify_observers('before_construct', { proto => $proto });
     $object = bless $proto, $class;
     $_->construct($object) foreach $class->members;
+    $_->construct($object) foreach @{$class->parents};
 
     $class->notify_observers('after_construct', { object => $object });
     $DEBUG && $class->_carp("constructing $object id => ".$object->id);
@@ -494,7 +495,7 @@ sub members {
 	values %{$class->associations},
 	values %{$class->methods},
         # not really members, but we'll treat the same
-	@{$class->parents},
+	#@{$class->parents},
     );
 }
 

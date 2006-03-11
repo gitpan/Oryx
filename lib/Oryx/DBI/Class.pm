@@ -29,7 +29,7 @@ sub create {
     $_->create(\%query, $param) foreach $class->members;
 
     # grab out the attributes that this class knows about
-    my @keys = ('id', keys %{$class->attributes});
+    my @keys = (keys %{$class->attributes});
     push @keys, '_isa' if $class->is_abstract;
     my $proto = { };
     @$proto{@keys} = @$param{@keys};
@@ -43,6 +43,7 @@ sub create {
     $param->{id} = $class->lastId();
     $proto->{id} = $class->lastId();
 
+    $_->create(\%query, $param) foreach @{$class->parents};
     $class->notify_observers('after_create', { param => $param, proto => $proto });
 
     return $class->construct($proto);
@@ -69,6 +70,7 @@ sub retrieve {
     $DEBUG && $class->_carp("retrieve : id => $id");
     $class->notify_observers('before_retrieve', { query => \%query, id => $id });
     $_->retrieve(\%query, $id) foreach $class->members;
+    $_->retrieve(\%query, $id) foreach @{$class->parents};
 
     my $sql = SQL::Abstract->new;
     my ($stmnt, @bind) = $sql->select(@query{
@@ -115,6 +117,7 @@ sub update {
     );
     $self->notify_observers('before_update', { query => \%query });
     $_->update(\%query, $self) foreach $self->members;
+    $_->update(\%query, $self) foreach @{$self->parents};
 
     my $sql = SQL::Abstract->new;
     my ($stmnt, @bind) = $sql->update(@query{
@@ -140,6 +143,7 @@ sub delete {
     );
     $self->notify_observers('before_delete', { query => \%query });
     $_->delete(\%query, $self) foreach $self->members;
+    $_->delete(\%query, $self) foreach @{$self->parents};
 
     my $sql = SQL::Abstract->new;
     my ($stmnt, @bind) = $sql->delete(@query{qw(table where)});
@@ -174,6 +178,7 @@ sub search {
     );
 
     $_->search(\%query) foreach $class->members;
+    $_->search(\%query) foreach @{$class->parents};
 
     my $sql = SQL::Abstract->new(cmp => 'like');
     my ($stmnt, @bind) = $sql->select(@query{

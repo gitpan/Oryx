@@ -4,7 +4,7 @@ use Oryx::DBI::Class;
 
 use base qw(Oryx Oryx::MetaClass Ima::DBI);
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 =head1 NAME
 

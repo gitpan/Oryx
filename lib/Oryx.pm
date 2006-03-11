@@ -4,7 +4,7 @@ use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Oryx::Class;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our $DEBUG = 0;
 
 sub new { croak("abstract") }
@@ -41,7 +41,7 @@ sub init {
     if (%Oryx::Class::Orphans) {
 	foreach (keys %Oryx::Class::Orphans) {
 	    eval { Oryx::Class::import($_) };
-	    $_->_carp($@) if $@;
+	    $DEBUG && $_->_carp($@) if $@;
 	    $schema->addClass($_);
 	}
 	%Oryx::Class::Orphans = ();

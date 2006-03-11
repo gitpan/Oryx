@@ -9,7 +9,7 @@ use base qw(Oryx Oryx::MetaClass);
 
 __PACKAGE__->mk_classdata("datapath");
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 =head1 NAME
 

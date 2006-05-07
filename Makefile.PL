@@ -10,6 +10,7 @@ build_requires($_) for (qw[
     Class::Observable
     Class::Data::Inheritable
     Class::Date
+    DBD::SQLite
     DBM::Deep
     Test::More
     Data::Types
@@ -25,6 +26,7 @@ requires($_) for (qw[
     Class::Date
     SQL::Abstract
     Ima::DBI
+    DBD::SQLite
     DBM::Deep
     Data::Types
     File::Spec

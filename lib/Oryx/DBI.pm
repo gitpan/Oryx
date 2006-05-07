@@ -58,6 +58,8 @@ sub connect {
     eval "use $schema"; $self->_croak($@) if $@;
 
     my $db_name = $schema->name;
+    $self->_croak("no schema name '$db_name'")
+        unless $db_name;
 
     ref($self)->set_db($db_name, @$conn)
         unless UNIVERSAL::can($self, "db_$db_name");

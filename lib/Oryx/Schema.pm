@@ -49,6 +49,7 @@ names prefixed to provide namespace separation.
 =cut
 
 __PACKAGE__->mk_classdata('_classes');
+__PACKAGE__->mk_classdata('_name');
 
 sub new {
     my $class = shift;
@@ -57,12 +58,28 @@ sub new {
 }
 
 sub name {
-    my $name = ref $_[0] ? ref $_[0] : $_[0];
-    $name =~ s/::/_/g;
-    return $name;
+    my $self = shift;
+    if (@_) {
+        $self->_name(@_);
+    }
+    unless ($self->_name) {
+        my $name = ref($self) || $self;
+        $name =~ s/::/_/g;
+        $self->_name($name);
+    }
+    return $self->_name;
 }
 
-sub prefix { '' }
+sub prefix {
+    my $self = shift;
+    if (@_) {
+        $self->{prefix} = shift;
+    }
+    unless (defined $self->{prefix}) {
+        $self->{prefix} = '';
+    }
+    return $self->{prefix};
+}
 
 sub classes {
     keys %{$_[0]->_classes};
@@ -75,6 +92,19 @@ sub addClass {
 
 sub hasClass {
     return $_[0]->_classes->{$_[1]};
+}
+
+sub loadXML {
+    my $self = shift;
+    my $xstr = shift;
+    my $parser = Parser->new( whitespace => 'strip' );
+    my $doc  = $parser->parse( $xstr );
+    my $name = $doc->documentElement->getAttribute( "name" );
+    $self->name($name);
+    foreach my $n (@{$doc->documentElement->childNodes}) {
+        my $class = $n->getAttribute( "name" );
+        # hmmm... now what?
+    }
 }
 
 1;

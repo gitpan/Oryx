@@ -184,6 +184,7 @@ sub search {
     my ($stmnt, @bind) = $sql->select(@query{
         qw(table fields where order)
     });
+    #warn 'SEARCH STATEMENT => '.$stmnt;
     my $sth = $class->dbh->prepare_cached($stmnt);
     $sth->execute(@bind);
 

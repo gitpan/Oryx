@@ -1,3 +1,2 @@
 ---
-- 'dbm:Deep:datapath=/tmp'
-
+- 'dbi:SQLite:dbname=test'

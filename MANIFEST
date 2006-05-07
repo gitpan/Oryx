@@ -54,6 +54,7 @@ lib/Oryx/Value/Text.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
+t/01-chycks.t
 t/ArrayClass.pm
 t/assocarray_pop.t
 t/assocarray_push.t
@@ -81,8 +82,9 @@ t/dsn.yml.sqlite
 t/HashClass.pm
 t/inheritance.t
 t/observers.t
+t/Orx/Chyck.pm
+t/Orx/Skirt.pm
 t/Parent1.pm
 t/Parent2.pm
 t/search.t
 t/WeirdName.pm
-test

@@ -15,43 +15,43 @@ Oryx::Class - abstract base class for Oryx classes
  # define a persistent class
  package CMS::Page;
  use base qw(Oryx::Class);
- 
+  
  # ... class meta-data here (see DEFINING CLASS META-DATA below) ...
- 
+  
  1;
- 
+  
  #===========================================================================
  # use a persistent class
  use CMS::Page;
- 
+  
  $page = CMS::Page->create({title => 'Life in the Metaverse'});
  $page = CMS::Page->retrieve($id);
- 
+  
  $page->update;
  $page->delete;
- 
+  
  @pages = CMS::Page->search({author => 'Richard Hun%'}, \@order, $limit, $offset);
- 
+  
  #===========================================================================
  # commit your changes
  $page->dbh->commit; # or simply ...
  $page->commit;
- 
+  
  #===========================================================================
  # attribute mutator
  $page->title('The Metamanic Mechanic');
  $tite = $page->title;
- 
+  
  #===========================================================================
  # reference association mutator
  $template_obj = $page->template;
  $page->template( $template_obj );
- 
+  
  #===========================================================================
  # array association accessor
  $page->paragraphs->[0] = $intro_para;
  $paragraph = $page->paragraphs->[42];
- 
+  
  #===========================================================================
  # array association operators
  $concl = pop   @{$page->paragraphs};
@@ -59,14 +59,14 @@ Oryx::Class - abstract base class for Oryx classes
  push    @{$page->paragraphs}, $concl;
  unshift @{$page->paragraphs}, $new_intro;
  splice  @{$page->paragraphs}, 1, 4, ($summary);
- 
+  
  #===========================================================================
  # hash association accessor
  $image_obj = $page->images->{logo};
  $page->images->{mug_shot} = $my_ugly_mug;
  @keys   = keys   %{$page->images};
  @values = values %{$page->images};
- 
+  
  #===========================================================================
  # support for Class::Observable
  Page->add_observer(sub {
@@ -162,7 +162,7 @@ our $DEBUG = 0;
 our $PARSER;
 
 sub parser {
-    $PARSER = Parser->new unless defined $PARSER;
+    $PARSER = Parser->new( whitespace => 'strip' ) unless defined $PARSER;
     $PARSER;
 }
 
@@ -336,6 +336,9 @@ sub generate {
 	    }
 	    elsif ($member->tagName eq "Association") {
 		$class->addAssociation($member->attributes);
+	    }
+	    elsif ($member->tagName eq "Parent") {
+		$class->addParent($member->attributes->{class});
 	    }
 	    elsif ($member->tagName eq "Method") {
 		$class->addMethod($member->attributes);
@@ -522,16 +525,9 @@ sub parseDataIO {
 		      .' you have XML::DOM::Lite installed');
 	return undef;
     }
-    return $class->dataNode if $class->dataNode;
     my $stream = $class->loadDataIO;
     if ($stream) {
-	$class->parser->rootNode(my $stub = Node->new({
-	    tagName => 'stub',
-	    nodeType => ELEMENT_NODE,
-        }));
-        $class->parser->parseNamespace($stream, "");
-	$class->dataNode($stub);
-        return $stub;
+        return $class->parser->parse($stream);
     } else {
 	return undef;
     }

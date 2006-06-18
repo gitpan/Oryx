@@ -6,6 +6,7 @@ abstract('Object Persistence with Multiple Inheritance');
 license('artistic');
 version_from('lib/Oryx.pm');
 build_requires($_) for (qw[
+    DBI
     YAML
     Class::Observable
     Class::Data::Inheritable

@@ -36,7 +36,10 @@ sub create {
 
     my $sql = SQL::Abstract->new;
     my ($stmnt, @bind) = $sql->insert($query{table}, $proto);
-    my $sth = $class->dbh->prepare_cached($stmnt);
+
+    my $sth;
+    eval { $sth = $class->dbh->prepare_cached($stmnt) };
+    die "ERROR: statement $stmnt $@" if $@;
     $sth->execute(@bind);
     $sth->finish;
 

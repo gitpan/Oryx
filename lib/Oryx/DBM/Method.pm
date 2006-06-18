@@ -11,6 +11,8 @@ sub new {
     return $self;
 }
 
+sub name { $_[0]->{meta}->{name} }
+
 sub construct {
 
 }

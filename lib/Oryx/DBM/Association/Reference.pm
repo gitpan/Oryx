@@ -19,7 +19,11 @@ sub update {
     my $accessor = $self->role;
     if (tied($obj->{$accessor})->changed) {
 	my $f_key = $self->class->table.'_id';
-	$proto->{ $f_key } = $obj->$accessor->id;
+	if (ref($obj->$accessor)) {
+	    $proto->{ $f_key } = $obj->$accessor->id;
+	} else {
+	    $proto->{ $f_key } = $obj->$accessor;
+	}
     }
 }
 
@@ -41,7 +45,12 @@ sub search {
 sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
-    my @args = ($self, $obj->{$self->class->table.'_id'});
+    my @args;
+    if ($obj->{$assoc_name} and defined $obj->{$assoc_name}->{id}) {
+	@args = ($self, $obj->{$assoc_name}->{id});
+    } else {
+	@args = ($self, $obj->{$self->class->table.'_id'});
+    }
     tie $obj->{$assoc_name}, __PACKAGE__, @args;
 }
 

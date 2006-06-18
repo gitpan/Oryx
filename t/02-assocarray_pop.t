@@ -1,3 +1,4 @@
+# vim: set ft=perl:
 use lib 't', 'lib';
 
 use Test::More qw(no_plan);

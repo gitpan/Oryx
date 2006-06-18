@@ -26,6 +26,7 @@ sub TIEHASH {
         updated => { },
     }, $class;
 
+    $self->HASH;
     return $self;
 }
 

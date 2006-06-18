@@ -28,8 +28,12 @@ sub TIESCALAR {
 
 sub STORE {
     my ($self, $object) = @_;
-    return unless $object;
-    $self->{oid} = $object->id;
+    return unless defined $object;
+    if (ref($object)) {
+	$self->{oid} = $object->id;
+    } else {
+	$self->{oid} = $object;
+    }
     $self->{changed}++;
     $self->{TARGET} = $object;
 }

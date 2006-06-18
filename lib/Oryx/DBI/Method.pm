@@ -10,7 +10,9 @@ sub new {
     }, $class;
     return $self;
 }
-
+sub name {
+    return $_[0]->{meta}->{name}
+}
 sub construct {
 
 }

@@ -28,7 +28,7 @@ sub table_exists {
     $sth->execute();
     my @rv = @{$sth->fetchall_arrayref};
     $sth->finish;
-    return grep { $_->[2] eq $table } @rv;
+    return grep { lc $_->[2] eq lc $table } @rv;
 }
 
 1;

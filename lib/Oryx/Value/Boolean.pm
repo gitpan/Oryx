@@ -60,7 +60,7 @@ This value type checks the types to make sure they are correct provides methods 
 
 L<Oryx::Value>
 
-=head AUTHOR
+=head1 AUTHOR
 
 Richard Hundt E<lt>richard NO SPAM AT protea-systems.comE<gt>
 

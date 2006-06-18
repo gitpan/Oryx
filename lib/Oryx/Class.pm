@@ -3,6 +3,9 @@ package Oryx::Class;
 use Carp qw(carp croak);
 use UNIVERSAL qw(isa can);
 use Scalar::Util qw(weaken);
+use warnings;
+use strict;
+no strict 'refs';
 
 use base qw(Class::Data::Inheritable Class::Observable);
 
@@ -131,19 +134,55 @@ I<before_*> and I<after_*>, so the following signals are sent:
 =over 4
 
 =item before_create
+
+Handler is passed a hashref as argument with fields: C<param>, the search parameters, and C<query>, the L<SQL::Abstract> where clause
+
 =item after_create
+
+Handler is passed a hashref as argument with fields: C<param>, the search parameters, and C<proto>, the hashref which will be blessed into an instance of this class (during 'construct')
+
 =item before_retrieve
+
+Handler is passed a hashref as argument with fields: C<id>, the id of the object to fetch, and C<query>, the L<SQL::Abstract> where clause
+
 =item after_retrieve
+
+Handler is passed a hashref as argument with fields: C<proto>, the hashref which will be blessed into an instance of this class (during 'construct')
+
 =item before_update
+
+Handler is passed a hashref as argument with fields: C<query>, the L<SQL::Abstract> where clause.
+
 =item after_update
+
+Handler takes no arguments.
+
 =item before_delete
+
+Handler is passed a hashref as argument with fields: C<query>, the L<SQL::Abstract> where clause.
+
 =item after_delete
+
+Handler takes no arguments.
+
 =item before_search
+
+Handler is passed a hashref as argument with fields: C<query>, the L<SQL::Abstract> where clause, C<param>, the search parameters, the C<order> and C<limit> parameters.
+
 =item after_search
+
+Handler is passed a hashref as argument with fields: C<query>, the L<SQL::Abstract> where clause, C<param>, the search parameters, the C<order> and C<limit> parameters, and C<objects>, an arrayref of objects returned by the search.
+
 =item before_construct
+
+Handler is passed a hashref as argument with fields: C<proto>, the hashref which will be blessed into an instance of this class.
+
 =item after_construct
 
+Handler is passed a hashref as argument with fields: C<object>, the persistent object.
+
 =back
+
 
 =cut
 
@@ -153,7 +192,7 @@ BEGIN {
     __PACKAGE__->mk_classdata("auto_deploy");
     __PACKAGE__->mk_classdata("dont_cache");
 
-    our $XML_DOM_Lite_Is_Available = 1;
+    $XML_DOM_Lite_Is_Available = 1;
     eval "use XML::DOM::Lite qw(Parser Node :constants);";
     $XML_DOM_Lite_Is_Available = 0 if $@;
 }
@@ -271,7 +310,13 @@ sub import {
     }
 
     my $schema;
-    if ($schema = ${$class.'::schema'}) {
+    unless ($schema = ${$class.'::schema'})  {
+        my $xmldata = $class->parseDataIO;
+        eval(q{use Oryx::Schema::Generator});
+        die $@ if $@;
+        $schema = Oryx::Schema::Generator->generate($class, $xmldata);
+    }
+    if ($schema) {
         $class->name($schema->{name}) if defined $schema->{name};
 	foreach (@{$schema->{attributes}}) {
 	    $class->addAttribute($_);
@@ -283,19 +328,6 @@ sub import {
 	    $class->addMethod($_);
 	}
     }
-    elsif ($schema = $class->parseDataIO) {
-	foreach (@{$schema->childNodes}) {
-	    if ($_->nodeType & 1) { # ELEMENT_NODE
-		if ($_->tagName eq "Class") {
-		    $class->generate($_);
-		}
-	    }
-	}
-    }
-    else {
-	# assume that we're adding members explicitly
-    }
-
     if ($class->auto_deploy or $param{auto_deploy}) {
 	unless ($class->storage->util->table_exists(
         $class->dbh, $class->table)) {
@@ -315,38 +347,6 @@ sub meta {
     my $class = shift;
     $class->_meta(shift) if @_;
     $class->_meta;
-}
-
-=item generate
-
-is used when you've got your schema in the DATA section of the
-module. L<XML::DOM::Lite> needs to be present.
-
-=cut
-
-sub generate {
-    my ($class, $nclass) = @_;
-
-    $class->meta($nclass->attributes);
-
-    foreach my $member (@{$nclass->childNodes}) {
-	if ($member->nodeType & 1) { # ELEMENT_NODE
-	    if ($member->tagName eq "Attribute") {
-		$class->addAttribute($member->attributes);
-	    }
-	    elsif ($member->tagName eq "Association") {
-		$class->addAssociation($member->attributes);
-	    }
-	    elsif ($member->tagName eq "Parent") {
-		$class->addParent($member->attributes->{class});
-	    }
-	    elsif ($member->tagName eq "Method") {
-		$class->addMethod($member->attributes);
-	    }
-	}
-    }
-
-    return $class;
 }
 
 =item construct( $class, $proto )
@@ -369,6 +369,7 @@ sub construct {
 
     $class->notify_observers('before_construct', { proto => $proto });
     $object = bless $proto, $class;
+
     $_->construct($object) foreach $class->members;
     $_->construct($object) foreach @{$class->parents};
 
@@ -527,7 +528,7 @@ sub parseDataIO {
     }
     my $stream = $class->loadDataIO;
     if ($stream) {
-        return $class->parser->parse($stream);
+        return $class->parser->parse($stream)->documentElement;
     } else {
 	return undef;
     }

@@ -83,6 +83,7 @@ sub construct {
 sub load {
     my ($self, $owner) = @_;
 
+    warn "IS THE ARRAY TIED? => ".tied($owner->{$self->role});
     # take a copy of the DBM array
     my $assoc_name = $self->role;
     my $Array = [ $owner->{$self->role} ? @{ $owner->{$self->role} } : () ];

@@ -21,6 +21,22 @@ sub update {
     my $lt_name = $self->link_table;
     my @lt_flds = $self->link_fields;
 
+    unless (tied(@$value)) {
+	my @list = @$value;
+	$self->construct($obj);
+	my $i = 0;
+	grep { tied(@$value)->_set_created($i++, $_) } @list;
+	my %lt_where = ($lt_flds[0] => $obj->id);
+	my $stmnt = $sql->delete($lt_name, \%lt_where);
+	my $sth = $obj->dbh->prepare($stmnt);
+	my @bind = $sql->values(\%lt_where);
+	$sth->execute(@bind);
+	$sth->finish;
+
+	tied(@$value)->deleted({});
+	tied(@$value)->updated({});
+    }
+
     my (@bind, %lt_fieldvals, %lt_where, $stmnt, $sth);
     if (%{tied(@$value)->deleted}) {
 	%lt_where = ($lt_flds[0] => $obj->id, $lt_flds[2] => '');
@@ -45,7 +61,7 @@ sub update {
 	$sth   = $obj->dbh->prepare($stmnt);
 
 	while (my ($index, $thing) = each %{tied(@$value)->created}) {
-	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->id : undef;
+	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->{id} : undef;
 	    $lt_fieldvals{$lt_flds[2]} = $index;
 	    @bind = $sql->values(\%lt_fieldvals);
 	    $sth->execute(@bind);
@@ -63,7 +79,7 @@ sub update {
 	$sth   = $obj->dbh->prepare($stmnt);
 
 	while (my ($index, $thing) = each %{tied(@$value)->updated}) {
-	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->id : undef;
+	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->{id} : undef;
 	    $lt_where{$lt_flds[2]} = $index;
 	    @bind = $sql->values(\%lt_fieldvals);
 	    push @bind, $sql->values(\%lt_where);
@@ -106,8 +122,34 @@ sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
     my @args = ($self, $obj);
-    tie my @value, __PACKAGE__, @args;
-    $obj->{$assoc_name} = \@value;
+
+    my @list;
+    if ($obj->{$assoc_name}) {
+	@list = @{$obj->{$assoc_name}};
+    }
+
+    $obj->{$assoc_name} = [ ] unless $obj->{$assoc_name};
+    tie @{$obj->{$assoc_name}}, __PACKAGE__, @args;
+
+    if (@list) {
+	my $i = 0;
+	grep { tied(@{$obj->{$assoc_name}})->_set_created($i++, $_) } @list;
+
+	my $tieobj = tied(@{$obj->{$assoc_name}});
+	my $sql = SQL::Abstract->new;
+	my $lt_name = $self->link_table;
+	my @lt_flds = $self->link_fields;
+
+	my %lt_where = ($lt_flds[0] => $obj->id);
+	my $stmnt = $sql->delete($lt_name, \%lt_where);
+	my $sth = $obj->dbh->prepare($stmnt);
+	my @bind = $sql->values(\%lt_where);
+	$sth->execute(@bind);
+	$sth->finish;
+
+	$tieobj->deleted({});
+	$tieobj->updated({});
+    }
 }
 
 # Fill an array ref with ids from the link table and order by 'meta'.
@@ -130,21 +172,17 @@ sub load {
     my $sth = $owner->dbh->prepare_cached($stmnt);
     $sth->execute(@bind);
 
-    my $Array = [ ]; my @args;
+    my $Array = [ ];
+    my ($oid, $idx, @args);
     my @ids_seq = $sth->fetchall;
     for (my $x = 0; $x < @ids_seq; $x++) {
-	@args = ($self, $ids_seq[$x]->[0]);
-	# this probably looks a bit weird, but the reason we're not
-	# tie'ing here is because certain Array operations need to
-	# access each member of the array (such as shift and unshift)
-	# and when it does, we just want to move the Reference objects
-	# about without fetching each referree from storage... hence
-	# the explicit call to $thing->FETCH below in 'sub fetch'
-	$Array->[$ids_seq[$x]->[1]]
-	  = Oryx::DBI::Association::Reference->TIESCALAR(@args);
+	$oid = $ids_seq[$x]->[0];
+	$idx = $ids_seq[$x]->[1];
+	@args = ($self, $oid);
+	$Array->[$idx] = Oryx::DBI::Association::Reference->TIESCALAR(@args);
     }
-    $sth->finish;
 
+    $sth->finish;
     return $Array;
 }
 

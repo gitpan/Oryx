@@ -46,7 +46,7 @@ sub update {
 	$sth   = $obj->dbh->prepare($stmnt);
 
 	while (my ($key, $thing) = each %{tied(%$value)->created}) {
-	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->id : undef;
+	    $lt_fieldvals{$lt_flds[1]} = defined $thing ? $thing->{id} : undef;
 	    $lt_fieldvals{$lt_flds[2]} = $key;
 	    @bind = $sql->values(\%lt_fieldvals);
 	    $sth->execute(@bind);
@@ -107,8 +107,37 @@ sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
     my @args = ($self, $obj);
-    tie my %value, __PACKAGE__, @args;
-    $obj->{$assoc_name} = \%value;
+
+    my %hash;
+    if ($obj->{$assoc_name}) {
+	%hash = %{$obj->{$assoc_name}};
+    }
+
+    $obj->{$assoc_name} = { } unless $obj->{$assoc_name};
+    tie %{$obj->{$assoc_name}}, __PACKAGE__, @args;
+
+    if (%hash) {
+	warn "got prefil hash";
+	while (my ($k, $v) = each %hash) {
+	    warn "set_created $k => $v";
+	    tied(%{$obj->{$assoc_name}})->_set_created($k, $v);
+	}
+    
+	my $tieobj = tied(%{$obj->{$assoc_name}});
+	my $sql = SQL::Abstract->new;
+	my $lt_name = $self->link_table;
+	my @lt_flds = $self->link_fields;
+
+	my %lt_where = ($lt_flds[0] => $obj->id);
+	my $stmnt = $sql->delete($lt_name, \%lt_where);
+	my $sth = $obj->dbh->prepare($stmnt);
+	my @bind = $sql->values(\%lt_where);
+	$sth->execute(@bind);
+	$sth->finish;
+
+	$tieobj->deleted({});
+	$tieobj->updated({});
+    }
 }
 
 sub load {

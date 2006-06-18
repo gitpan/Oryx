@@ -4,8 +4,9 @@ use Oryx::DBM::Association::Reference;
 
 use base qw(Oryx::Association::Hash);
 use Data::Dumper;
+use Carp qw(carp);
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 sub create {
     my ($self, $proto, $param) = @_;
@@ -74,7 +75,6 @@ sub search {
 sub construct {
     my ($self, $obj) = @_;
     my $assoc_name = $self->role;
-
     my @args = ($self, $obj);
 
     $obj->{$assoc_name} = { } unless $obj->{$assoc_name};
@@ -86,23 +86,14 @@ sub construct {
 sub load {
     my ($self, $owner) = @_;
 
-    $DEBUG && $self->_carp("load : OWNER => $owner, ID => ".$owner->id." hash size => ");
-
-    my $Hash = { };
-    if ($owner->dbm->get( $owner->id )->{$self->role}) {
-        $Hash = $owner->dbm->get( $owner->id )->{$self->role}->export;
-    }
-
-    $DEBUG && $self->_carp('load: hash => '.Dumper($Hash).' owner => '.$owner);
-
+    my $Hash = { $owner->{$self->role} ? %{ $owner->{$self->role} } : () };
     my @args;
     foreach (keys(%$Hash)) {
 	@args = ($self, $Hash->{$_});
 	tie $Hash->{$_}, 'Oryx::DBM::Association::Reference', @args;
     }
-
+    warn "Hash load => ".Dumper($Hash);
     return $Hash;
-
 }
 
 sub fetch {

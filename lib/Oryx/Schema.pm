@@ -22,7 +22,25 @@ Oryx::Schema - Schema class for Oryx
   sub prefix { 'cms' }
 
   1;
-   
+
+  #==================================================================
+  # ALTERNATIVE - With XML::DOM::Lite installed
+  #==================================================================
+  package CMS::Schema;
+  use base qw(Oryx::Schema);
+  1;
+  __DATA__
+  <Schema>
+    <Class name="CMS::Page">
+      <Attribute name="title" type="String"/>
+      <Attribute name="num" type="Integer"/>
+      <Association role="author" class="CMS::Author"/>
+    </Class>
+    <Class name="CMS::Author">
+      <Attribute name="first_name" type="String"/>
+      <Attribute name="last_name" type="String"/>
+    </Class>
+  </Schema>
   use CMS::Schema;
    
   my $cms_storage = Oryx->connect(\@conn, 'CMS::Schema'); 
@@ -60,7 +78,8 @@ sub new {
 sub name {
     my $self = shift;
     if (@_) {
-        $self->_name(@_);
+        $_[0] =~ s/::/_/g;
+        $self->_name($_[0]);
     }
     unless ($self->_name) {
         my $name = ref($self) || $self;
@@ -82,6 +101,8 @@ sub prefix {
 }
 
 sub classes {
+    my @gens = grep { UNIVERSAL::isa($_, 'Oryx::Schema::Generator') } @INC;
+    foreach my $gen (@gens) { $gen->requireAll() }
     keys %{$_[0]->_classes};
 }
 
@@ -91,19 +112,34 @@ sub addClass {
 }
 
 sub hasClass {
-    return $_[0]->_classes->{$_[1]};
+    return shift->class(@_);
+}
+
+sub class {
+    my $class = $_[0]->_classes->{$_[1]};
+    return $class;
 }
 
 sub loadXML {
     my $self = shift;
     my $xstr = shift;
-    my $parser = Parser->new( whitespace => 'strip' );
+    use XML::DOM::Lite::Parser;
+    use Oryx::Schema::Generator;
+
+    my $parser = XML::DOM::Lite::Parser->new( whitespace => 'strip' );
     my $doc  = $parser->parse( $xstr );
-    my $name = $doc->documentElement->getAttribute( "name" );
-    $self->name($name);
-    foreach my $n (@{$doc->documentElement->childNodes}) {
-        my $class = $n->getAttribute( "name" );
-        # hmmm... now what?
+
+    push @INC, Oryx::Schema::Generator->new( $doc );
+}
+
+sub import {
+    my $class = shift;
+    my $fh = *{"$class\::DATA"}{IO};
+    return undef unless $fh;
+    local $/ = undef;
+    my $data = <$fh>;
+    if ($data) {
+	$class->loadXML($data);
     }
 }
 

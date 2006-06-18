@@ -204,11 +204,13 @@ sub deploy_class {
     my @columns = ('id');
     my @types   = ($oid);
     if ($class->is_abstract) {
+	$DEBUG && $self->_carp("CLASS $class IS ABSTRACT");
 	push @columns, '_isa';
 	push @types, $self->util->type2sql('String');
     }
 
     foreach my $attrib (values %{$class->attributes}) {
+	$DEBUG && $self->_carp("GOT ATTRIBUTE => $attrib");
 	push @columns, $attrib->name;
 	push @types, $self->util->type2sql($attrib->primitive, $attrib->size);
     }
